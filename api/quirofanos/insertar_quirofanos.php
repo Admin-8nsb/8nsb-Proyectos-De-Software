@@ -14,19 +14,17 @@ requireRole("Administrador");
 
 $input = json_decode(file_get_contents("php://input"), true);
 
-$id = $input["id"] ?? null;
 $nombreQuirofano = trim($input["nombreQuirofano"] ?? "");
 $ubicacion = trim($input["ubicacion"] ?? "");
 $areasId = $input["areasId"] ?? null;
 
 if (
-    $id === null || !is_numeric($id) ||
     $nombreQuirofano === "" ||
     $areasId === null || !is_numeric($areasId)
 ) {
     jsonResponse(400, [
         "ok" => false,
-        "message" => "ID, nombre del quirófano y área son obligatorios"
+        "message" => "El nombre del quirófano y el área son obligatorios"
     ]);
 }
 
@@ -34,21 +32,6 @@ try {
     $database = new Database();
     $conn = $database->getConnection();
 
-    $sqlCheckId = "SELECT ID
-                   FROM QUIROFANOS
-                   WHERE ID = :id
-                   LIMIT 1";
-    $stmtCheckId = $conn->prepare($sqlCheckId);
-    $stmtCheckId->execute([
-        ":id" => (int)$id
-    ]);
-
-    if ($stmtCheckId->fetch()) {
-        jsonResponse(409, [
-            "ok" => false,
-            "message" => "Ya existe un quirófano con ese ID"
-        ]);
-    }
 
     $sqlCheckArea = "SELECT ID
                      FROM AREAS
@@ -85,12 +68,10 @@ try {
     }
 
     $sql = "INSERT INTO QUIROFANOS (
-                ID,
                 NOMBREQUIROFANO,
                 UBICACION,
                 AREAS_ID
             ) VALUES (
-                :id,
                 :nombreQuirofano,
                 :ubicacion,
                 :areasId
@@ -98,7 +79,6 @@ try {
 
     $stmt = $conn->prepare($sql);
     $stmt->execute([
-        ":id" => (int)$id,
         ":nombreQuirofano" => $nombreQuirofano,
         ":ubicacion" => ($ubicacion === "" ? null : $ubicacion),
         ":areasId" => (int)$areasId

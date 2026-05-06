@@ -68,12 +68,6 @@ const MODULES_CONFIG = [
     roles: ['Administrador', 'Recepcion'] 
   },
   {
-    id: 'estudios', 
-    label: 'Reporte de Estudios', 
-    icon: '📊', 
-    roles: ['Administrador', 'Medico', 'Laboratorio'] 
-  },
-  {
     id: 'tipoestudios', 
     label: 'Configurar Estudios', 
     icon: '🧪', 

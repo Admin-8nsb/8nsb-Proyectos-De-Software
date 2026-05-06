@@ -14,7 +14,6 @@ requireRole("Administrador");
 
 $input = json_decode(file_get_contents("php://input"), true);
 
-$id = $input["id"] ?? null;
 $tipo = $input["tipo"] ?? null;
 $ingresosId = $input["ingresosId"] ?? null;
 $fechaEgreso = trim($input["fechaEgreso"] ?? "");
@@ -22,13 +21,12 @@ $observaciones = trim($input["observaciones"] ?? "");
 $habitacionesId = $input["habitacionesId"] ?? null;
 
 if (
-    $id === null || !is_numeric($id) ||
     $ingresosId === null || !is_numeric($ingresosId) ||
     $habitacionesId === null || !is_numeric($habitacionesId)
 ) {
     jsonResponse(400, [
         "ok" => false,
-        "message" => "ID, ingreso y habitación son obligatorios"
+        "message" => "Ingreso y habitación son obligatorios"
     ]);
 }
 
@@ -42,24 +40,6 @@ if ($tipo !== null && $tipo !== "" && !is_numeric($tipo)) {
 try {
     $database = new Database();
     $conn = $database->getConnection();
-
-    $sqlCheckPk = "SELECT ID, HABITACIONES_ID
-                   FROM EGRESOS
-                   WHERE ID = :id
-                     AND HABITACIONES_ID = :habitacionesId
-                   LIMIT 1";
-    $stmtCheckPk = $conn->prepare($sqlCheckPk);
-    $stmtCheckPk->execute([
-        ":id" => (int)$id,
-        ":habitacionesId" => (int)$habitacionesId
-    ]);
-
-    if ($stmtCheckPk->fetch()) {
-        jsonResponse(409, [
-            "ok" => false,
-            "message" => "Ya existe un egreso con ese ID y habitación"
-        ]);
-    }
 
     $sqlCheckHabitacion = "SELECT ID
                            FROM HABITACIONES
@@ -112,14 +92,12 @@ try {
     }
 
     $sql = "INSERT INTO EGRESOS (
-                ID,
                 TIPO,
                 INGRESOS_ID,
                 FECHAEGRESO,
                 OBSERVACIONES,
                 HABITACIONES_ID
             ) VALUES (
-                :id,
                 :tipo,
                 :ingresosId,
                 :fechaEgreso,
@@ -129,7 +107,6 @@ try {
 
     $stmt = $conn->prepare($sql);
     $stmt->execute([
-        ":id" => (int)$id,
         ":tipo" => ($tipo === "" ? null : $tipo),
         ":ingresosId" => (int)$ingresosId,
         ":fechaEgreso" => ($fechaEgreso === "" ? null : $fechaEgreso),

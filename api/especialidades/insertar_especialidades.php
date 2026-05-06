@@ -14,35 +14,18 @@ requireRole("Administrador");
 
 $input = json_decode(file_get_contents("php://input"), true);
 
-$id = $input["id"] ?? null;
 $especialidad = trim($input["especialidad"] ?? "");
 
-if ($id === null || !is_numeric($id) || $especialidad === "") {
+if ($especialidad === "") {
     jsonResponse(400, [
         "ok" => false,
-        "message" => "ID numérico y especialidad son obligatorios"
+        "message" => "La especialidad es obligatoria"
     ]);
 }
 
 try {
     $database = new Database();
     $conn = $database->getConnection();
-
-    $sqlCheckId = "SELECT ID
-                   FROM ESPECIALIDADES
-                   WHERE ID = :id
-                   LIMIT 1";
-    $stmtCheckId = $conn->prepare($sqlCheckId);
-    $stmtCheckId->execute([
-        ":id" => (int)$id
-    ]);
-
-    if ($stmtCheckId->fetch()) {
-        jsonResponse(409, [
-            "ok" => false,
-            "message" => "Ya existe una especialidad con ese ID"
-        ]);
-    }
 
     $sqlCheckNombre = "SELECT ID
                        FROM ESPECIALIDADES
@@ -60,12 +43,11 @@ try {
         ]);
     }
 
-    $sql = "INSERT INTO ESPECIALIDADES (ID, ESPECIALIDAD)
-            VALUES (:id, :especialidad)";
+    $sql = "INSERT INTO ESPECIALIDADES (ESPECIALIDAD)
+            VALUES (:especialidad)";
 
     $stmt = $conn->prepare($sql);
     $stmt->execute([
-        ":id" => (int)$id,
         ":especialidad" => $especialidad
     ]);
 

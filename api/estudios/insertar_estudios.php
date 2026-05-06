@@ -14,20 +14,18 @@ requireRole("Administrador");
 
 $input = json_decode(file_get_contents("php://input"), true);
 
-$id = $input["id"] ?? null;
 $tipoEstudiosId = $input["tipoEstudiosId"] ?? null;
 $medicosExpediente = $input["medicosExpediente"] ?? null;
 $fechaEstudio = trim($input["fechaEstudio"] ?? "");
 $estatus = $input["estatus"] ?? null;
 
 if (
-    $id === null || !is_numeric($id) ||
     $tipoEstudiosId === null || !is_numeric($tipoEstudiosId) ||
     $medicosExpediente === null || !is_numeric($medicosExpediente)
 ) {
     jsonResponse(400, [
         "ok" => false,
-        "message" => "ID, tipo de estudio y médico son obligatorios"
+        "message" => "El tipo de estudio y médico son obligatorios"
     ]);
 }
 
@@ -42,21 +40,6 @@ try {
     $database = new Database();
     $conn = $database->getConnection();
 
-    $sqlCheckId = "SELECT ID
-                   FROM ESTUDIOS
-                   WHERE ID = :id
-                   LIMIT 1";
-    $stmtCheckId = $conn->prepare($sqlCheckId);
-    $stmtCheckId->execute([
-        ":id" => (int)$id
-    ]);
-
-    if ($stmtCheckId->fetch()) {
-        jsonResponse(409, [
-            "ok" => false,
-            "message" => "Ya existe un estudio con ese ID"
-        ]);
-    }
 
     $sqlCheckTipoEstudio = "SELECT ID
                             FROM TIPOESTUDIOS
@@ -91,13 +74,11 @@ try {
     }
 
     $sql = "INSERT INTO ESTUDIOS (
-                ID,
                 TIPOESTUDIOS_ID,
                 MEDICOS_EXPEDIENTE,
                 FECHAESTUDIO,
                 ESTATUS
             ) VALUES (
-                :id,
                 :tipoEstudiosId,
                 :medicosExpediente,
                 :fechaEstudio,
@@ -106,7 +87,6 @@ try {
 
     $stmt = $conn->prepare($sql);
     $stmt->execute([
-        ":id" => (int)$id,
         ":tipoEstudiosId" => (int)$tipoEstudiosId,
         ":medicosExpediente" => (int)$medicosExpediente,
         ":fechaEstudio" => ($fechaEstudio === "" ? null : $fechaEstudio),

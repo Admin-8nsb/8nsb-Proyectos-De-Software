@@ -14,18 +14,16 @@ requireRole("Administrador");
 
 $input = json_decode(file_get_contents("php://input"), true);
 
-$id = $input["id"] ?? null;
 $nombreProcedimiento = trim($input["nombreProcedimiento"] ?? "");
 $requisitos = trim($input["requisitos"] ?? "");
 $estatus = $input["estatus"] ?? null;
 
 if (
-    $id === null || !is_numeric($id) ||
     $nombreProcedimiento === ""
 ) {
     jsonResponse(400, [
         "ok" => false,
-        "message" => "ID y nombre del procedimiento son obligatorios"
+        "message" => "El nombre del procedimiento es obligatorio"
     ]);
 }
 
@@ -40,21 +38,6 @@ try {
     $database = new Database();
     $conn = $database->getConnection();
 
-    $sqlCheckId = "SELECT ID
-                   FROM TIPOPROCEDIMIENTO
-                   WHERE ID = :id
-                   LIMIT 1";
-    $stmtCheckId = $conn->prepare($sqlCheckId);
-    $stmtCheckId->execute([
-        ":id" => (int)$id
-    ]);
-
-    if ($stmtCheckId->fetch()) {
-        jsonResponse(409, [
-            "ok" => false,
-            "message" => "Ya existe un tipo de procedimiento con ese ID"
-        ]);
-    }
 
     $sqlCheckNombre = "SELECT ID
                        FROM TIPOPROCEDIMIENTO
@@ -73,12 +56,11 @@ try {
     }
 
     $sql = "INSERT INTO TIPOPROCEDIMIENTO (
-                ID,
                 NOMBREPROCEDIMIENTO,
                 REQUISITOS,
                 ESTATUS
             ) VALUES (
-                :id,
+                :nombreProcedimiento,
                 :nombreProcedimiento,
                 :requisitos,
                 :estatus
@@ -86,7 +68,6 @@ try {
 
     $stmt = $conn->prepare($sql);
     $stmt->execute([
-        ":id" => (int)$id,
         ":nombreProcedimiento" => $nombreProcedimiento,
         ":requisitos" => ($requisitos === "" ? null : $requisitos),
         ":estatus" => ($estatus === "" ? null : $estatus)

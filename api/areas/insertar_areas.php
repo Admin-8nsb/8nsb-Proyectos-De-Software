@@ -14,21 +14,19 @@ requireRole("Administrador");
 
 $input = json_decode(file_get_contents("php://input"), true);
 
-$id = $input["id"] ?? null;
 $ubicacion = trim($input["ubicacion"] ?? "");
 $nombreArea = trim($input["nombreArea"] ?? "");
 $id1 = $input["id1"] ?? null;
 $hospitalUniOrg = trim($input["hospitalUniOrg"] ?? "");
 
 if (
-    $id === null || !is_numeric($id) ||
     $nombreArea === "" ||
     $id1 === null || !is_numeric($id1) ||
     $hospitalUniOrg === ""
 ) {
     jsonResponse(400, [
         "ok" => false,
-        "message" => "ID, nombre del área, ID1 y hospital son obligatorios"
+        "message" => "El nombre del área, ID1 y hospital son obligatorios"
     ]);
 }
 
@@ -42,22 +40,6 @@ if (strlen($hospitalUniOrg) > 5) {
 try {
     $database = new Database();
     $conn = $database->getConnection();
-
-    $sqlCheckId = "SELECT ID
-                   FROM AREAS
-                   WHERE ID = :id
-                   LIMIT 1";
-    $stmtCheckId = $conn->prepare($sqlCheckId);
-    $stmtCheckId->execute([
-        ":id" => (int)$id
-    ]);
-
-    if ($stmtCheckId->fetch()) {
-        jsonResponse(409, [
-            "ok" => false,
-            "message" => "Ya existe un área con ese ID"
-        ]);
-    }
 
     $sqlCheckNombre = "SELECT ID
                        FROM AREAS
@@ -94,13 +76,11 @@ try {
     }
 
     $sql = "INSERT INTO AREAS (
-                ID,
                 UBICACION,
                 NOMBREAREA,
                 ID1,
                 HOSPITAL_UNI_ORG
             ) VALUES (
-                :id,
                 :ubicacion,
                 :nombreArea,
                 :id1,
@@ -109,7 +89,6 @@ try {
 
     $stmt = $conn->prepare($sql);
     $stmt->execute([
-        ":id" => (int)$id,
         ":ubicacion" => ($ubicacion === "" ? null : $ubicacion),
         ":nombreArea" => $nombreArea,
         ":id1" => (int)$id1,

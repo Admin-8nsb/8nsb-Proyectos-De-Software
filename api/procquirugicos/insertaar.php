@@ -14,7 +14,6 @@ requireRole("Administrador");
 
 $input = json_decode(file_get_contents("php://input"), true);
 
-$id = $input["id"] ?? null;
 $tipo = $input["tipo"] ?? null;
 $fechaProcedimiento = trim($input["fechaProcedimiento"] ?? "");
 $estatus = $input["estatus"] ?? null;
@@ -24,7 +23,6 @@ $tipoProcedimientoId = $input["tipoProcedimientoId"] ?? null;
 $id1 = $input["id1"] ?? null;
 
 if (
-    $id === null || !is_numeric($id) ||
     $quirofanosId === null || !is_numeric($quirofanosId) ||
     $medicosExpediente === null || !is_numeric($medicosExpediente) ||
     $tipoProcedimientoId === null || !is_numeric($tipoProcedimientoId) ||
@@ -32,7 +30,7 @@ if (
 ) {
     jsonResponse(400, [
         "ok" => false,
-        "message" => "ID, quirófano, médico, tipo de procedimiento e ID1 son obligatorios"
+        "message" => "Quirófano, médico, tipo de procedimiento e ID1 son obligatorios"
     ]);
 }
 
@@ -54,21 +52,6 @@ try {
     $database = new Database();
     $conn = $database->getConnection();
 
-    $sqlCheckId = "SELECT ID
-                   FROM PROCQUIRURGICOS
-                   WHERE ID = :id
-                   LIMIT 1";
-    $stmtCheckId = $conn->prepare($sqlCheckId);
-    $stmtCheckId->execute([
-        ":id" => (int)$id
-    ]);
-
-    if ($stmtCheckId->fetch()) {
-        jsonResponse(409, [
-            "ok" => false,
-            "message" => "Ya existe un procedimiento quirúrgico con ese ID"
-        ]);
-    }
 
     $sqlCheckQuirofano = "SELECT ID
                           FROM QUIROFANOS
@@ -119,7 +102,6 @@ try {
     }
 
     $sql = "INSERT INTO PROCQUIRURGICOS (
-                ID,
                 TIPO,
                 FECHAPROCEDIMIENTO,
                 ESTATUS,
@@ -128,7 +110,6 @@ try {
                 TIPOPROCEDIMIENTO_ID,
                 ID1
             ) VALUES (
-                :id,
                 :tipo,
                 :fechaProcedimiento,
                 :estatus,
@@ -140,7 +121,6 @@ try {
 
     $stmt = $conn->prepare($sql);
     $stmt->execute([
-        ":id" => (int)$id,
         ":tipo" => ($tipo === "" ? null : $tipo),
         ":fechaProcedimiento" => ($fechaProcedimiento === "" ? null : $fechaProcedimiento),
         ":estatus" => ($estatus === "" ? null : $estatus),
