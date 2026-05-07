@@ -33,8 +33,13 @@ body {
 /* Layout */
 .app-container {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: var(--sidebar-width, 260px) 1fr;
   min-height: 100vh;
+  transition: grid-template-columns 0.3s ease;
+}
+
+.app-container.sidebar-collapsed {
+  --sidebar-width: 80px;
 }
 
 /* Sidebar */
@@ -47,6 +52,44 @@ body {
   position: sticky;
   top: 0;
   height: 100vh;
+  transition: width 0.3s ease, padding 0.3s ease;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.sidebar.collapsed {
+  padding: 1.5rem 0.75rem;
+}
+
+.sidebar.collapsed #sidebarLogo {
+  display: none;
+}
+
+.sidebar.collapsed .sidebar-header div {
+  justify-content: center !important;
+}
+
+.sidebar.collapsed .nav-link {
+  justify-content: center;
+  padding: 0.75rem;
+}
+
+.sidebar.collapsed .nav-link span {
+  font-size: 1.25rem;
+}
+
+.sidebar.collapsed .nav-link {
+  font-size: 0;
+}
+
+.sidebar.collapsed .sidebar-footer button {
+  font-size: 0;
+  padding: 0.75rem;
+}
+
+.sidebar.collapsed .sidebar-footer button::before {
+  content: "🚪";
+  font-size: 1.25rem;
 }
 
 .sidebar-header {
@@ -98,9 +141,9 @@ body {
 /* Main Content */
 .main-content {
   padding: 2rem;
-  max-width: 1200px;
   width: 100%;
-  margin: 0 auto;
+  margin: 0;
+  max-width: none;
 }
 
 .top-bar {

@@ -675,3 +675,12 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
+
+INSERT INTO roles (nombre, descripcion) VALUES
+('Administrador', 'Acceso total al sistema'),
+('Recepcion', 'Gestion de ingresos y egresos'),
+('Medico', 'Gestion de consultas, estudios y procedimientos'),
+('Laboratorio', 'Gestion de estudios'),
+('Quirofano', 'Gestion de procedimientos quirurgicos');

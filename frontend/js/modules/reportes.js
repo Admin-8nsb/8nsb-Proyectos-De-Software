@@ -57,15 +57,63 @@ window.Modules.reportes = {
           </div>
         </div>
 
-        <!-- Placeholder para futuros reportes -->
-        <div class="card report-card" style="opacity: 0.6; border-top: 4px solid var(--secondary);">
-          <div style="font-size: 2rem; margin-bottom: 1rem;">📅</div>
-          <h3>Reporte de Consultas</h3>
+        <!-- REPORTE 1: Medicina General -->
+        <div class="card report-card" style="opacity: 0.7; border-top: 4px solid var(--secondary); background: #fcfcfc;">
+          <div style="font-size: 2rem; margin-bottom: 1rem;">🩺</div>
+          <h3>Consultas Medicina General</h3>
           <p style="font-size: 0.875rem; color: var(--text-light); margin-top: 0.5rem;">
-            Análisis de flujo de pacientes y especialidades más demandadas.
+            Número de consultas de medicina general o familiar por médico en consultorio.
           </p>
           <div style="margin-top: 1.5rem; color: var(--text-light); font-weight: 600; font-size: 0.85rem;">
-            Próximamente
+            ⏳ Próximamente
+          </div>
+        </div>
+
+        <!-- REPORTE 2: Especialistas -->
+        <div class="card report-card" style="opacity: 0.7; border-top: 4px solid var(--secondary); background: #fcfcfc;">
+          <div style="font-size: 2rem; margin-bottom: 1rem;">👨‍⚕️</div>
+          <h3>Consultas de Especialistas</h3>
+          <p style="font-size: 0.875rem; color: var(--text-light); margin-top: 0.5rem;">
+            Número de consultas de médicos especialistas por especialidad y consultorio.
+          </p>
+          <div style="margin-top: 1.5rem; color: var(--text-light); font-weight: 600; font-size: 0.85rem;">
+            ⏳ Próximamente
+          </div>
+        </div>
+
+        <!-- REPORTE 3: Otros Consultorios -->
+        <div class="card report-card" style="opacity: 0.7; border-top: 4px solid var(--secondary); background: #fcfcfc;">
+          <div style="font-size: 2rem; margin-bottom: 1rem;">🏢</div>
+          <h3>Otros Consultorios</h3>
+          <p style="font-size: 0.875rem; color: var(--text-light); margin-top: 0.5rem;">
+            Consultas o procedimientos de otros consultorios no incluidos anteriormente por tipo.
+          </p>
+          <div style="margin-top: 1.5rem; color: var(--text-light); font-weight: 600; font-size: 0.85rem;">
+            ⏳ Próximamente
+          </div>
+        </div>
+
+        <!-- REPORTE 4: Ingresos/Egresos Hospitalarios -->
+        <div class="card report-card" style="opacity: 0.7; border-top: 4px solid var(--secondary); background: #fcfcfc;">
+          <div style="font-size: 2rem; margin-bottom: 1rem;">🚪</div>
+          <h3>Ingresos y Egresos Hosp.</h3>
+          <p style="font-size: 0.875rem; color: var(--text-light); margin-top: 0.5rem;">
+            Número de ingresos y egresos incluyendo piso general y servicios (UCI, UCIN, etc).
+          </p>
+          <div style="margin-top: 1.5rem; color: var(--text-light); font-weight: 600; font-size: 0.85rem;">
+            ⏳ Próximamente
+          </div>
+        </div>
+
+        <!-- REPORTE 5: Quirófanos -->
+        <div class="card report-card" style="opacity: 0.7; border-top: 4px solid var(--secondary); background: #fcfcfc;">
+          <div style="font-size: 2rem; margin-bottom: 1rem;">🔪</div>
+          <h3>Partos y Cirugías</h3>
+          <p style="font-size: 0.875rem; color: var(--text-light); margin-top: 0.5rem;">
+            Número de partos, cirugías y otros procedimientos realizados en los quirófanos.
+          </p>
+          <div style="margin-top: 1.5rem; color: var(--text-light); font-weight: 600; font-size: 0.85rem;">
+            ⏳ Próximamente
           </div>
         </div>
       </div>
