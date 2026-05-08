@@ -175,7 +175,7 @@ window.Modules.consultorios = {
 
         <div class="form-group">
           <label>ID</label>
-          <input type="number" id="c_id" value="${item ? item.ID : ''}" ${isEdit ? 'readonly' : ''} required>
+          <input type="text" id="c_id" value="${item ? item.ID : 'Autogenerado'}" disabled style="background: #f1f5f9; cursor: not-allowed; font-weight: 600; color: #64748b;">
         </div>
 
         <div class="form-group">
@@ -214,14 +214,17 @@ window.Modules.consultorios = {
 
   async save(isEdit) {
     const data = {
-      id: parseInt(document.getElementById("c_id").value),
       consultorio: document.getElementById("c_nombre").value.trim(),
       ubicacion: document.getElementById("c_ubicacion").value.trim(),
       areasId: parseInt(document.getElementById("c_area").value)
     };
 
-    if (!data.id || !data.consultorio || !data.areasId) {
-      UI.toast.show("ID, consultorio y área son obligatorios", "warning");
+    if (isEdit) {
+      data.id = parseInt(document.getElementById("c_id").value);
+    }
+
+    if (!data.consultorio || !data.areasId || (isEdit && !data.id)) {
+      UI.toast.show("El nombre del consultorio y área son obligatorios", "warning");
       return;
     }
 

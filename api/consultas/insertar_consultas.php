@@ -19,6 +19,7 @@ $estatus = $input["estatus"] ?? null;
 $consultoriosId = $input["consultoriosId"] ?? null;
 $tipoConsulta = trim($input["tipoConsulta"] ?? "");
 $medicosExpediente = $input["medicosExpediente"] ?? null;
+$tipoServicioId = $input["tipoServicioId"] ?? null;
 
 if (
     $consultoriosId === null || !is_numeric($consultoriosId) ||
@@ -79,13 +80,15 @@ try {
                 ESTATUS,
                 CONSULTORIOS_ID,
                 TIPOCONSULTA,
-                MEDICOS_EXPEDIENTE
+                MEDICOS_EXPEDIENTE,
+                TIPOSERVICIO_ID
             ) VALUES (
                 :fechaConsulta,
                 :estatus,
                 :consultoriosId,
                 :tipoConsulta,
-                :medicosExpediente
+                :medicosExpediente,
+                :tipoServicioId
             )";
 
     $stmt = $conn->prepare($sql);
@@ -94,7 +97,8 @@ try {
         ":estatus" => ($estatus === "" ? null : $estatus),
         ":consultoriosId" => (int)$consultoriosId,
         ":tipoConsulta" => ($tipoConsulta === "" ? null : $tipoConsulta),
-        ":medicosExpediente" => (int)$medicosExpediente
+        ":medicosExpediente" => (int)$medicosExpediente,
+        ":tipoServicioId" => $tipoServicioId ? (int)$tipoServicioId : null
     ]);
 
     jsonResponse(201, [

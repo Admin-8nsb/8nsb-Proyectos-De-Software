@@ -94,11 +94,17 @@ const MODULES_CONFIG = [
     icon: '🔬',
     roles: ['Administrador', 'Laboratorio', 'Medico']
   },
-  {
+    {
     id: 'departamentos',
     label: 'Departamentos',
     icon: '🏢',
     roles: ['Administrador', 'Recepcion', 'Medico']
+  },
+  {
+    id: 'tipos_servicios',
+    label: 'Tipos de Servicios',
+    icon: '🗂️',
+    roles: ['Administrador']
   },
     {
     id: 'consultorios',
