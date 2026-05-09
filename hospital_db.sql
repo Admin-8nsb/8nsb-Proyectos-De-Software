@@ -629,6 +629,38 @@ LOCK TABLES `usuarios` WRITE;
 INSERT INTO `usuarios` VALUES (1,'admin','admin@hospital.com','$2y$10$E6HJCei3NLXtaFxJksvEn.dSxy.Y/G6GBInUVzOt4OVq1thOaVaZ2','Administrador General',1,'2026-05-05 18:17:31');
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `otros_procedimientos_quirofano`
+--
+
+DROP TABLE IF EXISTS `otros_procedimientos_quirofano`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `otros_procedimientos_quirofano` (
+  `ID` decimal(6,0) NOT NULL,
+  `DESCRIPCION` varchar(255) DEFAULT NULL,
+  `FECHAPROCEDIMIENTO` datetime DEFAULT NULL,
+  `ESTATUS` decimal(2,0) DEFAULT NULL,
+  `QUIROFANOS_ID` decimal(4,0) NOT NULL,
+  `MEDICOS_EXPEDIENTE` decimal(6,0) NOT NULL,
+  `ID1` decimal(4,0) NOT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `OTROS_PROC_QUIROFANO_MEDICOS_FK` (`MEDICOS_EXPEDIENTE`),
+  KEY `OTROS_PROC_QUIROFANO_QUIROFANOS_FK` (`QUIROFANOS_ID`),
+  CONSTRAINT `OTROS_PROC_QUIROFANO_MEDICOS_FK` FOREIGN KEY (`MEDICOS_EXPEDIENTE`) REFERENCES `medicos` (`EXPEDIENTE`),
+  CONSTRAINT `OTROS_PROC_QUIROFANO_QUIROFANOS_FK` FOREIGN KEY (`QUIROFANOS_ID`) REFERENCES `quirofanos` (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `otros_procedimientos_quirofano`
+--
+
+LOCK TABLES `otros_procedimientos_quirofano` WRITE;
+/*!40000 ALTER TABLE `otros_procedimientos_quirofano` DISABLE KEYS */;
+/*!40000 ALTER TABLE `otros_procedimientos_quirofano` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
