@@ -10,7 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "DELETE") {
     ]);
 }
 
-requireRole("Administrador");
+requireAnyRole(["Administrador", "Quirofano"]);
 
 $input = json_decode(file_get_contents("php://input"), true);
 

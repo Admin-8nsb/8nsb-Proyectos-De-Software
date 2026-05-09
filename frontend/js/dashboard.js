@@ -113,6 +113,12 @@ const MODULES_CONFIG = [
     roles: ['Administrador', 'Quirofano']
   },
   {
+    id: 'procquirugicos',
+    label: 'Procedimientos Quirúrgicos',
+    icon: '🔪',
+    roles: ['Administrador', 'Quirofano']
+  },
+  {
     id: 'usuarios',
     label: 'Usuarios y Accesos',
     icon: '👥',
