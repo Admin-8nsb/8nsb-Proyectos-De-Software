@@ -89,14 +89,14 @@ window.Modules.reportes = {
         </div>
 
         <!-- REPORTE 3: Otros Consultorios -->
-        <div class="card report-card" style="opacity: 0.7; border-top: 4px solid var(--secondary); background: #fcfcfc;">
+        <div class="card report-card" style="cursor: pointer; transition: var(--transition); border-top: 4px solid var(--secondary);" onclick="Modules.reportes.loadOtrosConsultoriosView()">
           <div style="font-size: 2rem; margin-bottom: 1rem;">🏢</div>
           <h3>Otros Consultorios</h3>
           <p style="font-size: 0.875rem; color: var(--text-light); margin-top: 0.5rem;">
             Consultas o procedimientos de otros consultorios no incluidos anteriormente por tipo.
           </p>
-          <div style="margin-top: 1.5rem; color: var(--text-light); font-weight: 600; font-size: 0.85rem;">
-            ⏳ Próximamente
+          <div style="margin-top: 1.5rem; color: var(--secondary); font-weight: 600; font-size: 0.85rem;">
+            Ver reporte →
           </div>
         </div>
 
@@ -141,217 +141,150 @@ window.Modules.reportes = {
     this.fetchEstudiosData();
   },
 
-  async loadProcedimientosView() {
-    this.currentView = 'procedimientos';
-
-    try {
-      UI.showSkeleton("#contentArea");
-      await Promise.all([this.loadQuirofanos(), this.loadTiposProcedimiento()]);
-      this.renderProcedimientosView();
-
-      document.getElementById("refreshProcedimientosBtn").addEventListener("click", () => this.fetchProcedimientosData());
-      document.getElementById("filterHospital").addEventListener("change", (e) => {
-        this.selectedHospital = e.target.value;
-        this.fetchProcedimientosData();
-      });
-      document.getElementById("filterQuirofano").addEventListener("change", (e) => {
-        this.selectedQuirofano = e.target.value;
-        this.fetchProcedimientosData();
-      });
-      document.getElementById("filterTipoAtencion").addEventListener("change", (e) => {
-        this.selectedTipoAtencion = e.target.value;
-        this.fetchProcedimientosData();
-      });
-      document.getElementById("filterTipoProcedimiento").addEventListener("change", (e) => {
-        this.selectedTipoProcedimiento = e.target.value;
-        this.fetchProcedimientosData();
-      });
-      document.getElementById("filterFechaDesde").addEventListener("change", (e) => {
-        this.selectedFechaDesde = e.target.value;
-        this.fetchProcedimientosData();
-      });
-      document.getElementById("filterFechaHasta").addEventListener("change", (e) => {
-        this.selectedFechaHasta = e.target.value;
-        this.fetchProcedimientosData();
-      });
-
-      this.fetchProcedimientosData();
-    } catch (error) {
-      UI.toast.show("Error al cargar el reporte de procedimientos", "error");
-    }
-  },
-
-  async loadQuirofanos() {
-    try {
-      const response = await fetch("../api/quirofanos/listar_quirofanos.php", { credentials: "include" });
-      const res = await response.json();
-      if (res.ok) this.quirofanos = res.data;
-    } catch (error) {
-      console.error("Error al cargar quirófanos:", error);
-    }
-  },
-
-  async loadTiposProcedimiento() {
-    try {
-      const response = await fetch("../api/tipoprocedimiento/listar_tipoprocedimiento.php", { credentials: "include" });
-      const res = await response.json();
-      if (res.ok) this.tiposProcedimiento = res.data;
-    } catch (error) {
-      console.error("Error al cargar tipos de procedimiento:", error);
-    }
-  },
-
-  renderProcedimientosView() {
+  async loadOtrosConsultoriosView() {
+    this.currentView = 'otros_consultorios';
     const contentArea = document.getElementById("contentArea");
-    const hospitalOptions = this.hospitales.map(h => 
-      `<option value="${h.UNI_ORG}" ${this.selectedHospital === h.UNI_ORG ? 'selected' : ''}>${h.NOMUO}</option>`
-    ).join('');
-
-    const quirofanoOptions = this.quirofanos.map(q => 
-      `<option value="${q.ID}" ${this.selectedQuirofano === String(q.ID) ? 'selected' : ''}>${q.NOMBREQUIROFANO}</option>`
-    ).join('');
-
-    const tipoProcedimientoOptions = this.tiposProcedimiento.map(t => 
-      `<option value="${t.ID}" ${this.selectedTipoProcedimiento === String(t.ID) ? 'selected' : ''}>${t.NOMBREPROCEDIMIENTO}</option>`
-    ).join('');
-
+    
     contentArea.innerHTML = `
       <div class="card" style="margin-bottom: 1.5rem;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; gap: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
           <div>
             <button class="btn btn-secondary" style="margin-bottom: 0.5rem;" onclick="Modules.reportes.showMenu()">← Volver al Menú</button>
-            <h2>🔪 Reporte de Partos, Cirugías y Otros Procedimientos</h2>
+            <h2>🏢 Reporte de Otros Consultorios</h2>
           </div>
-          <button id="refreshProcedimientosBtn" class="btn btn-primary">🔄 Actualizar Datos</button>
+          <button id="refreshOtrosBtn" class="btn btn-primary">🔄 Actualizar Datos</button>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; background: var(--background); padding: 1rem; border-radius: 8px;">
-          <div class="form-group" style="margin-bottom: 0;">
-            <label for="filterHospital" style="font-weight: 600; font-size: 0.9rem;">Filtrar por Hospital</label>
-            <select id="filterHospital" class="form-group" style="margin-bottom: 0; width: 100%;">
-              <option value="">Todos los hospitales</option>
-              ${hospitalOptions}
+        <div style="background: var(--background); padding: 1rem; border-radius: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+          
+          <div>
+            <label for="filterServicio" style="font-weight: 600; font-size: 0.9rem; display:block; margin-bottom:0.5rem;">Tipo de Servicio:</label>
+            <select id="filterServicio" class="form-group" style="margin-bottom: 0; width: 100%;">
+              <option value="">Todos los servicios</option>
             </select>
           </div>
 
-          <div class="form-group" style="margin-bottom: 0;">
-            <label for="filterQuirofano" style="font-weight: 600; font-size: 0.9rem;">Filtrar por Quirófano</label>
-            <select id="filterQuirofano" class="form-group" style="margin-bottom: 0; width: 100%;">
-              <option value="">Todos los quirófanos</option>
-              ${quirofanoOptions}
+          <div>
+            <label for="filterConsultorio" style="font-weight: 600; font-size: 0.9rem; display:block; margin-bottom:0.5rem;">Consultorio:</label>
+            <select id="filterConsultorio" class="form-group" style="margin-bottom: 0; width: 100%;">
+              <option value="">Todos los consultorios</option>
             </select>
           </div>
 
-          <div class="form-group" style="margin-bottom: 0;">
-            <label for="filterTipoAtencion" style="font-weight: 600; font-size: 0.9rem;">Tipo de Atención</label>
-            <select id="filterTipoAtencion" class="form-group" style="margin-bottom: 0; width: 100%;">
-              <option value="">Todos</option>
-              <option value="1" ${this.selectedTipoAtencion === '1' ? 'selected' : ''}>Parto</option>
-              <option value="2" ${this.selectedTipoAtencion === '2' ? 'selected' : ''}>Cirugía</option>
+          <div>
+            <label for="filterAtencion" style="font-weight: 600; font-size: 0.9rem; display:block; margin-bottom:0.5rem;">Tipo de Atención:</label>
+            <select id="filterAtencion" class="form-group" style="margin-bottom: 0; width: 100%;">
+              <option value="">Todas</option>
+              <option value="Primera Vez">Primera Vez</option>
+              <option value="Subsecuente">Subsecuente</option>
             </select>
           </div>
 
-          <div class="form-group" style="margin-bottom: 0;">
-            <label for="filterTipoProcedimiento" style="font-weight: 600; font-size: 0.9rem;">Tipo de Procedimiento</label>
-            <select id="filterTipoProcedimiento" class="form-group" style="margin-bottom: 0; width: 100%;">
-              <option value="">Todos los procedimientos</option>
-              ${tipoProcedimientoOptions}
-            </select>
-          </div>
-
-          <div class="form-group" style="margin-bottom: 0;">
-            <label for="filterFechaDesde" style="font-weight: 600; font-size: 0.9rem;">Fecha Desde</label>
-            <input type="date" id="filterFechaDesde" class="form-group" style="margin-bottom: 0; width: 100%;" value="${this.selectedFechaDesde}">
-          </div>
-
-          <div class="form-group" style="margin-bottom: 0;">
-            <label for="filterFechaHasta" style="font-weight: 600; font-size: 0.9rem;">Fecha Hasta</label>
-            <input type="date" id="filterFechaHasta" class="form-group" style="margin-bottom: 0; width: 100%;" value="${this.selectedFechaHasta}">
-          </div>
         </div>
       </div>
 
       <div id="reportDataContainer">
-        <p style="text-align: center; color: var(--text-light); padding: 3rem;">Cargando datos del reporte...</p>
+        <p style="text-align: center; color: var(--text-light); padding: 3rem;">Presiona Actualizar Datos para cargar.</p>
       </div>
     `;
+
+    document.getElementById("refreshOtrosBtn").addEventListener("click", () => this.fetchOtrosConsultoriosData());
+    document.getElementById("filterServicio").addEventListener("change", () => this.fetchOtrosConsultoriosData());
+    document.getElementById("filterConsultorio").addEventListener("change", () => this.fetchOtrosConsultoriosData());
+    document.getElementById("filterAtencion").addEventListener("change", () => this.fetchOtrosConsultoriosData());
+
+    this.loadCatalogosOtrosConsultorios();
+    this.fetchOtrosConsultoriosData();
   },
 
-  async fetchProcedimientosData() {
+  async loadCatalogosOtrosConsultorios() {
     try {
-      const params = new URLSearchParams();
-      if (this.selectedHospital) params.append("hospital_id", this.selectedHospital);
-      if (this.selectedQuirofano) params.append("quirofano_id", this.selectedQuirofano);
-      if (this.selectedTipoAtencion) params.append("tipo_atencion", this.selectedTipoAtencion);
-      if (this.selectedTipoProcedimiento) params.append("tipo_procedimiento_id", this.selectedTipoProcedimiento);
-      if (this.selectedFechaDesde) params.append("fecha_desde", this.selectedFechaDesde);
-      if (this.selectedFechaHasta) params.append("fecha_hasta", this.selectedFechaHasta);
+      // Cargar tipos de servicio dinámicamente
+      const resServicios = await fetch("../api/tipos_servicios/listar_tipos_servicios.php?exclude_id=1", { credentials: "include" });
+      const dataServicios = await resServicios.json();
+      
+      if (dataServicios.ok) {
+        const filterServicio = document.getElementById("filterServicio");
+        dataServicios.data.forEach(ts => {
+          filterServicio.innerHTML += `<option value="${ts.ID}">${ts.NOMBRESERVICIO}</option>`;
+        });
+      }
 
-      const response = await fetch(`../api/reportes/procedimientos_quirofano.php?${params.toString()}`, { credentials: "include" });
+      // Cargar consultorios físicos dinámicamente
+      const resConsultorios = await fetch("../api/consultorios/listar_consultorios.php", { credentials: "include" });
+      const dataConsultorios = await resConsultorios.json();
+
+      if (dataConsultorios.ok) {
+        const filterConsultorio = document.getElementById("filterConsultorio");
+        dataConsultorios.data.forEach(c => {
+          filterConsultorio.innerHTML += `<option value="${c.ID}">${c.CONSULTORIO}</option>`;
+        });
+      }
+
+    } catch (error) {
+      console.error("Error al cargar catálogos en reportes", error);
+    }
+  },
+
+  async fetchOtrosConsultoriosData() {
+    const container = document.getElementById("reportDataContainer");
+    const srv = document.getElementById("filterServicio").value;
+    const cons = document.getElementById("filterConsultorio").value;
+    const aten = document.getElementById("filterAtencion").value;
+    
+    container.innerHTML = `<p style="text-align: center; color: var(--text-light); padding: 3rem;">Cargando datos...</p>`;
+    
+    try {
+      const url = `../api/reportes/otros_consultorios.php?hospital_id=${this.selectedHospital}&servicio_id=${srv}&consultorio_id=${cons}&atencion=${aten}`;
+      const response = await fetch(url, { credentials: "include" });
       const res = await response.json();
 
       if (res.ok) {
-        this.renderProcedimientosStats(res.data);
+        let rows = res.data.registros.map(r => `
+          <tr>
+            <td>${new Date(r.FECHACONSULTA).toLocaleString()}</td>
+            <td><strong>${r.NOMBRESERVICIO}</strong></td>
+            <td>${r.NOMBRECONSULTORIO}</td>
+            <td>Dr. ${r.MEDICO_NOMBRE} ${r.MEDICO_PATERNO}</td>
+            <td><span class="badge" style="background: #e0f2fe; color: #0284c7; padding: 4px 12px; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">${r.TIPOCONSULTA}</span></td>
+          </tr>
+        `).join('');
+
+        if (res.data.registros.length === 0) {
+          rows = '<tr><td colspan="5" style="text-align: center; color: var(--text-light); padding: 2rem;">No hay registros con los filtros seleccionados</td></tr>';
+        }
+
+        container.innerHTML = `
+          <div class="card" style="border-left: 4px solid var(--secondary); margin-bottom: 2rem;">
+            <h3 style="color: var(--text-light); font-size: 0.9rem; text-transform: uppercase;">Total de Consultas / Procedimientos</h3>
+            <div style="font-size: 2.5rem; font-weight: 700; color: var(--secondary); margin: 0.5rem 0;">${res.data.total}</div>
+          </div>
+          <div class="card">
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Tipo Servicio</th>
+                    <th>Consultorio</th>
+                    <th>Médico</th>
+                    <th>Tipo Atención</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rows}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
       } else {
         UI.toast.show(res.message, "error");
       }
     } catch (error) {
-      UI.toast.show("Error al conectar con la API", "error");
+      UI.toast.show("Error al cargar datos del reporte", "error");
+      container.innerHTML = `<p style="text-align: center; color: var(--danger); padding: 3rem;">Ocurrió un error de conexión con la base de datos.</p>`;
     }
-  },
-
-  renderProcedimientosStats(data) {
-    const container = document.getElementById("reportDataContainer");
-    const resumen = data.resumen || {};
-    const detallado = data.detallado || [];
-
-    container.innerHTML = `
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-        <div class="card" style="border-left: 4px solid var(--primary);">
-          <h3 style="color: var(--text-light); font-size: 0.9rem; text-transform: uppercase;">Total de Procedimientos</h3>
-          <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary); margin: 0.5rem 0;">${resumen.total ?? 0}</div>
-        </div>
-
-        <div class="card" style="border-left: 4px solid #10b981;">
-          <h3 style="color: var(--text-light); font-size: 0.9rem; text-transform: uppercase;">Partos</h3>
-          <div style="font-size: 2.5rem; font-weight: 700; color: #10b981; margin: 0.5rem 0;">${resumen.partos ?? 0}</div>
-        </div>
-
-        <div class="card" style="border-left: 4px solid var(--danger);">
-          <h3 style="color: var(--text-light); font-size: 0.9rem; text-transform: uppercase;">Cirugías</h3>
-          <div style="font-size: 2.5rem; font-weight: 700; color: var(--danger); margin: 0.5rem 0;">${resumen.cirugias ?? 0}</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>📊 Detalle de Procedimientos</h3>
-        <div class="table-container" style="margin-top: 1rem;">
-          <table>
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Quirófano</th>
-                <th>Tipo de Atención</th>
-                <th>Tipo de Procedimiento</th>
-                <th style="text-align: center;">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${detallado.map(item => `
-                <tr>
-                  <td>${item.FECHA ? new Date(item.FECHA + 'T00:00:00').toLocaleDateString() : 'Sin fecha'}</td>
-                  <td>${item.NOMBREQUIROFANO || 'N/A'}</td>
-                  <td>${item.TIPO_ATENCION || 'Sin clasificar'}</td>
-                  <td>${item.NOMBREPROCEDIMIENTO || 'N/A'}</td>
-                  <td style="text-align: center;"><span class="badge" style="background: #e5e7eb; color: #111827;">${item.total}</span></td>
-                </tr>
-              `).join('')}
-              ${detallado.length === 0 ? '<tr><td colspan="5" style="text-align: center;">Sin datos</td></tr>' : ''}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    `;
   },
 
   renderViewWithFilter(title, btnId) {
