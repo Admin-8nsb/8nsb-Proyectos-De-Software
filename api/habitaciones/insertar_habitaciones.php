@@ -14,20 +14,18 @@ requireRole("Administrador");
 
 $input = json_decode(file_get_contents("php://input"), true);
 
-$id = $input["id"] ?? null;
 $nombreHabitacion = trim($input["nombreHabitacion"] ?? "");
 $ubicacion = trim($input["ubicacion"] ?? "");
 $equipamiento = trim($input["equipamiento"] ?? "");
 $areasId = $input["areasId"] ?? null;
 
 if (
-    $id === null || !is_numeric($id) ||
     $nombreHabitacion === "" ||
     $areasId === null || !is_numeric($areasId)
 ) {
     jsonResponse(400, [
         "ok" => false,
-        "message" => "ID, nombre de la habitación y área son obligatorios"
+        "message" => "El nombre de la habitación y área son obligatorios"
     ]);
 }
 
@@ -35,21 +33,6 @@ try {
     $database = new Database();
     $conn = $database->getConnection();
 
-    $sqlCheckId = "SELECT ID
-                   FROM HABITACIONES
-                   WHERE ID = :id
-                   LIMIT 1";
-    $stmtCheckId = $conn->prepare($sqlCheckId);
-    $stmtCheckId->execute([
-        ":id" => (int)$id
-    ]);
-
-    if ($stmtCheckId->fetch()) {
-        jsonResponse(409, [
-            "ok" => false,
-            "message" => "Ya existe una habitación con ese ID"
-        ]);
-    }
 
     $sqlCheckArea = "SELECT ID
                      FROM AREAS
@@ -86,13 +69,11 @@ try {
     }
 
     $sql = "INSERT INTO HABITACIONES (
-                ID,
                 NOMBREHABITACION,
                 UBICACION,
                 EQUIPAMIENTO,
                 AREAS_ID
             ) VALUES (
-                :id,
                 :nombreHabitacion,
                 :ubicacion,
                 :equipamiento,
@@ -101,7 +82,6 @@ try {
 
     $stmt = $conn->prepare($sql);
     $stmt->execute([
-        ":id" => (int)$id,
         ":nombreHabitacion" => $nombreHabitacion,
         ":ubicacion" => ($ubicacion === "" ? null : $ubicacion),
         ":equipamiento" => ($equipamiento === "" ? null : $equipamiento),

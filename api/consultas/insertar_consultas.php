@@ -14,21 +14,20 @@ requireRole("Administrador");
 
 $input = json_decode(file_get_contents("php://input"), true);
 
-$id = $input["id"] ?? null;
 $fechaConsulta = trim($input["fechaConsulta"] ?? "");
 $estatus = $input["estatus"] ?? null;
 $consultoriosId = $input["consultoriosId"] ?? null;
 $tipoConsulta = trim($input["tipoConsulta"] ?? "");
 $medicosExpediente = $input["medicosExpediente"] ?? null;
+$tipoServicioId = $input["tipoServicioId"] ?? null;
 
 if (
-    $id === null || !is_numeric($id) ||
     $consultoriosId === null || !is_numeric($consultoriosId) ||
     $medicosExpediente === null || !is_numeric($medicosExpediente)
 ) {
     jsonResponse(400, [
         "ok" => false,
-        "message" => "ID, consultorio y médico son obligatorios"
+        "message" => "El consultorio y médico son obligatorios"
     ]);
 }
 
@@ -43,21 +42,6 @@ try {
     $database = new Database();
     $conn = $database->getConnection();
 
-    $sqlCheckId = "SELECT ID
-                   FROM CONSULTAS
-                   WHERE ID = :id
-                   LIMIT 1";
-    $stmtCheckId = $conn->prepare($sqlCheckId);
-    $stmtCheckId->execute([
-        ":id" => (int)$id
-    ]);
-
-    if ($stmtCheckId->fetch()) {
-        jsonResponse(409, [
-            "ok" => false,
-            "message" => "Ya existe una consulta con ese ID"
-        ]);
-    }
 
     $sqlCheckConsultorio = "SELECT ID
                             FROM CONSULTORIOS
@@ -92,29 +76,29 @@ try {
     }
 
     $sql = "INSERT INTO CONSULTAS (
-                ID,
                 FECHACONSULTA,
                 ESTATUS,
                 CONSULTORIOS_ID,
                 TIPOCONSULTA,
-                MEDICOS_EXPEDIENTE
+                MEDICOS_EXPEDIENTE,
+                TIPOSERVICIO_ID
             ) VALUES (
-                :id,
                 :fechaConsulta,
                 :estatus,
                 :consultoriosId,
                 :tipoConsulta,
-                :medicosExpediente
+                :medicosExpediente,
+                :tipoServicioId
             )";
 
     $stmt = $conn->prepare($sql);
     $stmt->execute([
-        ":id" => (int)$id,
         ":fechaConsulta" => ($fechaConsulta === "" ? null : $fechaConsulta),
         ":estatus" => ($estatus === "" ? null : $estatus),
         ":consultoriosId" => (int)$consultoriosId,
         ":tipoConsulta" => ($tipoConsulta === "" ? null : $tipoConsulta),
-        ":medicosExpediente" => (int)$medicosExpediente
+        ":medicosExpediente" => (int)$medicosExpediente,
+        ":tipoServicioId" => $tipoServicioId ? (int)$tipoServicioId : null
     ]);
 
     jsonResponse(201, [

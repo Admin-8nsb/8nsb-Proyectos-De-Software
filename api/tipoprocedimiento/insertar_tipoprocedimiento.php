@@ -10,29 +10,16 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     ]);
 }
 
-requireRole("Administrador");
+requireAnyRole(["Administrador", "Quirofano"]);
 
 $input = json_decode(file_get_contents("php://input"), true);
 
-$id = $input["id"] ?? null;
-$nombreProcedimiento = trim($input["nombreProcedimiento"] ?? "");
-$requisitos = trim($input["requisitos"] ?? "");
-$estatus = $input["estatus"] ?? null;
+$nombreProcedimiento = trim($input["nombreprocedimiento"] ?? "");
 
-if (
-    $id === null || !is_numeric($id) ||
-    $nombreProcedimiento === ""
-) {
+if ($nombreProcedimiento === "") {
     jsonResponse(400, [
         "ok" => false,
-        "message" => "ID y nombre del procedimiento son obligatorios"
-    ]);
-}
-
-if ($estatus !== null && $estatus !== "" && !is_numeric($estatus)) {
-    jsonResponse(400, [
-        "ok" => false,
-        "message" => "El estatus debe ser numérico"
+        "message" => "El nombre del procedimiento es obligatorio"
     ]);
 }
 
@@ -40,67 +27,54 @@ try {
     $database = new Database();
     $conn = $database->getConnection();
 
-    $sqlCheckId = "SELECT ID
-                   FROM TIPOPROCEDIMIENTO
-                   WHERE ID = :id
-                   LIMIT 1";
-    $stmtCheckId = $conn->prepare($sqlCheckId);
-    $stmtCheckId->execute([
-        ":id" => (int)$id
-    ]);
+    // Verificar duplicado
+    $sqlCheck = "SELECT ID
+                 FROM TIPOPROCEDIMIENTO
+                 WHERE LOWER(NOMBREPROCEDIMIENTO) = LOWER(:nombre)
+                 LIMIT 1";
+    $stmtCheck = $conn->prepare($sqlCheck);
+    $stmtCheck->execute([":nombre" => $nombreProcedimiento]);
 
-    if ($stmtCheckId->fetch()) {
-        jsonResponse(409, [
-            "ok" => false,
-            "message" => "Ya existe un tipo de procedimiento con ese ID"
-        ]);
-    }
-
-    $sqlCheckNombre = "SELECT ID
-                       FROM TIPOPROCEDIMIENTO
-                       WHERE UPPER(TRIM(NOMBREPROCEDIMIENTO)) = UPPER(TRIM(:nombreProcedimiento))
-                       LIMIT 1";
-    $stmtCheckNombre = $conn->prepare($sqlCheckNombre);
-    $stmtCheckNombre->execute([
-        ":nombreProcedimiento" => $nombreProcedimiento
-    ]);
-
-    if ($stmtCheckNombre->fetch()) {
-        jsonResponse(409, [
+    if ($stmtCheck->fetch()) {
+        jsonResponse(400, [
             "ok" => false,
             "message" => "Ya existe un tipo de procedimiento con ese nombre"
         ]);
     }
 
-    $sql = "INSERT INTO TIPOPROCEDIMIENTO (
-                ID,
-                NOMBREPROCEDIMIENTO,
-                REQUISITOS,
-                ESTATUS
-            ) VALUES (
-                :id,
-                :nombreProcedimiento,
-                :requisitos,
-                :estatus
-            )";
+    // Obtener el siguiente ID manualmente (por si la tabla no tiene AUTO_INCREMENT)
+    $sqlMaxId = "SELECT COALESCE(MAX(ID), 0) + 1 AS NEXT_ID FROM TIPOPROCEDIMIENTO";
+    $stmtMaxId = $conn->prepare($sqlMaxId);
+    $stmtMaxId->execute();
+    $nextId = (int) $stmtMaxId->fetchColumn();
 
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([
-        ":id" => (int)$id,
-        ":nombreProcedimiento" => $nombreProcedimiento,
-        ":requisitos" => ($requisitos === "" ? null : $requisitos),
-        ":estatus" => ($estatus === "" ? null : $estatus)
-    ]);
+    // Intentar primero sin ID (para tablas con AUTO_INCREMENT)
+    // Si falla, reintentar con ID explícito (para tablas sin AUTO_INCREMENT)
+    try {
+        $sql = "INSERT INTO TIPOPROCEDIMIENTO (NOMBREPROCEDIMIENTO)
+                VALUES (:nombre)";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([":nombre" => $nombreProcedimiento]);
+    } catch (Throwable $eInner) {
+        $sql = "INSERT INTO TIPOPROCEDIMIENTO (ID, NOMBREPROCEDIMIENTO)
+                VALUES (:id, :nombre)";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([
+            ":id"     => $nextId,
+            ":nombre" => $nombreProcedimiento
+        ]);
+    }
 
     jsonResponse(201, [
-        "ok" => true,
-        "message" => "Tipo de procedimiento insertado correctamente"
+        "ok"      => true,
+        "message" => "Tipo de procedimiento creado correctamente"
     ]);
+
 } catch (Throwable $e) {
     jsonResponse(500, [
-        "ok" => false,
-        "message" => "Error al insertar tipo de procedimiento",
-        "error" => $e->getMessage()
+        "ok"      => false,
+        "message" => "Error al crear tipo de procedimiento",
+        "error"   => $e->getMessage()
     ]);
 }
 ?>

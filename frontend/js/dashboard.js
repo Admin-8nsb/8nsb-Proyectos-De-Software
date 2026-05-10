@@ -14,11 +14,20 @@ const dom = {
   logoutBtn: document.getElementById("logoutBtn"),
   contentArea: document.getElementById("contentArea"),
   moduleTitle: document.getElementById("moduleTitle"),
-  sidebarNav: document.getElementById("sidebarNav")
+  sidebarNav: document.getElementById("sidebarNav"),
+  toggleSidebarBtn: document.getElementById("toggleSidebarBtn"),
+  sidebar: document.querySelector(".sidebar"),
+  appContainer: document.querySelector(".app-container")
 };
 
 // --- Role-Based Module Configuration ---
 const MODULES_CONFIG = [
+  {
+    id: 'reportes',
+    label: 'Reportes',
+    icon: '📊',
+    roles: ['Administrador', 'Recepcion']
+  },
   { 
     id: 'dashboard', 
     label: 'Dashboard', 
@@ -68,12 +77,6 @@ const MODULES_CONFIG = [
     roles: ['Administrador', 'Recepcion'] 
   },
   {
-    id: 'estudios', 
-    label: 'Reporte de Estudios', 
-    icon: '📊', 
-    roles: ['Administrador', 'Medico', 'Laboratorio'] 
-  },
-  {
     id: 'tipoestudios', 
     label: 'Configurar Estudios', 
     icon: '🧪', 
@@ -86,22 +89,22 @@ const MODULES_CONFIG = [
     roles: ['Administrador', 'Medico', 'Laboratorio'] 
   },
   {
-    id: 'reportes',
-    label: 'Reportes',
-    icon: '📊',
-    roles: ['Administrador', 'Recepcion']
-  },
-  {
     id: 'laboratorios',
     label: 'Laboratorios',
     icon: '🔬',
     roles: ['Administrador', 'Laboratorio', 'Medico']
   },
-  {
+    {
     id: 'departamentos',
     label: 'Departamentos',
     icon: '🏢',
     roles: ['Administrador', 'Recepcion', 'Medico']
+  },
+  {
+    id: 'tipos_servicios',
+    label: 'Tipos de Servicios',
+    icon: '🗂️',
+    roles: ['Administrador']
   },
     {
     id: 'consultorios',
@@ -113,6 +116,12 @@ const MODULES_CONFIG = [
     id: 'quirofanos',
     label: 'Quirófanos',
     icon: '👩‍⚕️',
+    roles: ['Administrador', 'Quirofano']
+  },
+  {
+    id: 'procquirugicos',
+    label: 'Procedimientos Quirúrgicos',
+    icon: '🔪',
     roles: ['Administrador', 'Quirofano']
   },
   {
@@ -129,6 +138,23 @@ const MODULES_CONFIG = [
   }
 
 ];
+
+// --- Sidebar Toggle Logic ---
+if (dom.toggleSidebarBtn) {
+  dom.toggleSidebarBtn.addEventListener("click", () => {
+    dom.sidebar.classList.toggle("collapsed");
+    dom.appContainer.classList.toggle("sidebar-collapsed");
+    
+    // Save preference
+    localStorage.setItem("sidebarCollapsed", dom.sidebar.classList.contains("collapsed"));
+  });
+
+  // Restore preference
+  if (localStorage.getItem("sidebarCollapsed") === "true") {
+    dom.sidebar.classList.add("collapsed");
+    dom.appContainer.classList.add("sidebar-collapsed");
+  }
+}
 
 // --- Session Management ---
 async function checkSession() {

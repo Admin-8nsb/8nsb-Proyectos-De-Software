@@ -14,7 +14,6 @@ requireRole("Administrador");
 
 $input = json_decode(file_get_contents("php://input"), true);
 
-$id = $input["id"] ?? null;
 $tipo = $input["tipo"] ?? null;
 $fechaIngreso = trim($input["fechaIngreso"] ?? "");
 $observaciones = trim($input["observaciones"] ?? "");
@@ -22,13 +21,12 @@ $medicosExpediente = $input["medicosExpediente"] ?? null;
 $habitacionesId = $input["habitacionesId"] ?? null;
 
 if (
-    $id === null || !is_numeric($id) ||
     $medicosExpediente === null || !is_numeric($medicosExpediente) ||
     $habitacionesId === null || !is_numeric($habitacionesId)
 ) {
     jsonResponse(400, [
         "ok" => false,
-        "message" => "ID, médico y habitación son obligatorios"
+        "message" => "Médico y habitación son obligatorios"
     ]);
 }
 
@@ -43,23 +41,6 @@ try {
     $database = new Database();
     $conn = $database->getConnection();
 
-    $sqlCheckPk = "SELECT ID, HABITACIONES_ID
-                   FROM INGRESOS
-                   WHERE ID = :id
-                     AND HABITACIONES_ID = :habitacionesId
-                   LIMIT 1";
-    $stmtCheckPk = $conn->prepare($sqlCheckPk);
-    $stmtCheckPk->execute([
-        ":id" => (int)$id,
-        ":habitacionesId" => (int)$habitacionesId
-    ]);
-
-    if ($stmtCheckPk->fetch()) {
-        jsonResponse(409, [
-            "ok" => false,
-            "message" => "Ya existe un ingreso con ese ID y habitación"
-        ]);
-    }
 
     $sqlCheckMedico = "SELECT EXPEDIENTE
                        FROM MEDICOS
@@ -94,14 +75,12 @@ try {
     }
 
     $sql = "INSERT INTO INGRESOS (
-                ID,
                 TIPO,
                 FECHAINGRESO,
                 OBSERVACIONES,
                 MEDICOS_EXPEDIENTE,
                 HABITACIONES_ID
             ) VALUES (
-                :id,
                 :tipo,
                 :fechaIngreso,
                 :observaciones,
@@ -111,7 +90,6 @@ try {
 
     $stmt = $conn->prepare($sql);
     $stmt->execute([
-        ":id" => (int)$id,
         ":tipo" => ($tipo === "" ? null : $tipo),
         ":fechaIngreso" => ($fechaIngreso === "" ? null : $fechaIngreso),
         ":observaciones" => ($observaciones === "" ? null : $observaciones),

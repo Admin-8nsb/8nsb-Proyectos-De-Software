@@ -10,7 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     ]);
 }
 
-requireRole("Administrador");
+requireAnyRole(["Administrador", "Quirofano"]);
 
 $input = json_decode(file_get_contents("php://input"), true);
 
@@ -54,21 +54,6 @@ try {
     $database = new Database();
     $conn = $database->getConnection();
 
-    $sqlCheckId = "SELECT ID
-                   FROM PROCQUIRURGICOS
-                   WHERE ID = :id
-                   LIMIT 1";
-    $stmtCheckId = $conn->prepare($sqlCheckId);
-    $stmtCheckId->execute([
-        ":id" => (int)$id
-    ]);
-
-    if ($stmtCheckId->fetch()) {
-        jsonResponse(409, [
-            "ok" => false,
-            "message" => "Ya existe un procedimiento quirúrgico con ese ID"
-        ]);
-    }
 
     $sqlCheckQuirofano = "SELECT ID
                           FROM QUIROFANOS

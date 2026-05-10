@@ -1,321 +1,674 @@
--- CREATE DATABASE IF NOT EXISTS hospital_db
---   CHARACTER SET utf8mb4
---   COLLATE utf8mb4_unicode_ci;
+-- MariaDB dump 10.19  Distrib 10.4.32-MariaDB, for Win64 (AMD64)
+--
+-- Host: localhost    Database: hospital_db
+-- ------------------------------------------------------
+-- Server version	10.4.32-MariaDB
 
--- USE hospital_db;
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
--- SET FOREIGN_KEY_CHECKS = 0;
+--
+-- Table structure for table `areas`
+--
 
--- DROP TABLE IF EXISTS usuario_medico;
--- DROP TABLE IF EXISTS usuario_roles;
--- DROP TABLE IF EXISTS roles;
--- DROP TABLE IF EXISTS usuarios;
+DROP TABLE IF EXISTS `areas`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `areas` (
+  `ID` decimal(4,0) NOT NULL,
+  `UBICACION` varchar(200) DEFAULT NULL,
+  `NOMBREAREA` varchar(100) DEFAULT NULL,
+  `ID1` decimal(3,0) NOT NULL,
+  `HOSPITAL_UNI_ORG` varchar(5) NOT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `AREAS_HOSPITAL_FK` (`HOSPITAL_UNI_ORG`),
+  CONSTRAINT `AREAS_HOSPITAL_FK` FOREIGN KEY (`HOSPITAL_UNI_ORG`) REFERENCES `hospital` (`UNI_ORG`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- DROP TABLE IF EXISTS CONSULTAS;
--- DROP TABLE IF EXISTS ESTUDIOS;
--- DROP TABLE IF EXISTS EGRESOS;
--- DROP TABLE IF EXISTS INGRESOS;
--- DROP TABLE IF EXISTS PROCQUIRURGICOS;
--- DROP TABLE IF EXISTS TIPOESTUDIOS;
--- DROP TABLE IF EXISTS TIPOPROCEDIMIENTO;
--- DROP TABLE IF EXISTS QUIROFANOS;
--- DROP TABLE IF EXISTS MEDICOS;
--- DROP TABLE IF EXISTS LABORATORIOS;
--- DROP TABLE IF EXISTS HABITACIONES;
--- DROP TABLE IF EXISTS DEPARTAMENTOS;
--- DROP TABLE IF EXISTS CONSULTORIOS;
--- DROP TABLE IF EXISTS ESPECIALIDADES;
--- DROP TABLE IF EXISTS AREAS;
--- DROP TABLE IF EXISTS HOSPITAL;
+--
+-- Dumping data for table `areas`
+--
 
--- SET FOREIGN_KEY_CHECKS = 1;
+LOCK TABLES `areas` WRITE;
+/*!40000 ALTER TABLE `areas` DISABLE KEYS */;
+INSERT INTO `areas` VALUES (4,'Polo sur','Urgencias',2,'H0001');
+/*!40000 ALTER TABLE `areas` ENABLE KEYS */;
+UNLOCK TABLES;
 
--- CREATE TABLE HOSPITAL (
---     UNI_ORG   VARCHAR(5) NOT NULL,
---     NOMUO     VARCHAR(80),
---     DIRECCION VARCHAR(100),
---     DIRECTOR  VARCHAR(60),
---     TELEFONO  BIGINT,
---     CONSTRAINT HOSPITAL_PK PRIMARY KEY (UNI_ORG)
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--
+-- Table structure for table `consultas`
+--
 
--- CREATE TABLE AREAS (
---     ID               DECIMAL(4,0) NOT NULL,
---     UBICACION        VARCHAR(200),
---     NOMBREAREA      VARCHAR(100),
---     ID1              DECIMAL(3,0) NOT NULL,
---     HOSPITAL_UNI_ORG VARCHAR(5) NOT NULL,
---     CONSTRAINT AREAS_PK PRIMARY KEY (ID),
---     CONSTRAINT AREAS_HOSPITAL_FK FOREIGN KEY (HOSPITAL_UNI_ORG)
---         REFERENCES HOSPITAL (UNI_ORG)
---         ON DELETE RESTRICT
---         ON UPDATE RESTRICT
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+DROP TABLE IF EXISTS `consultas`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `consultas` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `FECHACONSULTA` datetime DEFAULT NULL,
+  `ESTATUS` decimal(2,0) DEFAULT NULL,
+  `CONSULTORIOS_ID` int(11) NOT NULL,
+  `TIPOCONSULTA` varchar(50) DEFAULT NULL,
+  `MEDICOS_EXPEDIENTE` decimal(6,0) NOT NULL,
+  `TIPOSERVICIO_ID` int(11) DEFAULT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `CONSULTAS_CONSULTORIOS_FK` (`CONSULTORIOS_ID`),
+  KEY `CONSULTAS_MEDICOS_FK` (`MEDICOS_EXPEDIENTE`),
+  KEY `CONSULTAS_TIPOSERVICIO_FK` (`TIPOSERVICIO_ID`),
+  CONSTRAINT `CONSULTAS_CONSULTORIOS_FK` FOREIGN KEY (`CONSULTORIOS_ID`) REFERENCES `consultorios` (`ID`),
+  CONSTRAINT `CONSULTAS_MEDICOS_FK` FOREIGN KEY (`MEDICOS_EXPEDIENTE`) REFERENCES `medicos` (`EXPEDIENTE`),
+  CONSTRAINT `CONSULTAS_TIPOSERVICIO_FK` FOREIGN KEY (`TIPOSERVICIO_ID`) REFERENCES `tipos_servicios` (`ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- CREATE TABLE ESPECIALIDADES (
---     ID           DECIMAL(2,0) NOT NULL,
---     ESPECIALIDAD VARCHAR(50),
---     CONSTRAINT ESPECIALIDADES_PK PRIMARY KEY (ID)
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--
+-- Dumping data for table `consultas`
+--
 
--- CREATE TABLE CONSULTORIOS (
---     ID           DECIMAL(3,0) NOT NULL,
---     CONSULTORIO  VARCHAR(50),
---     UBICACION    VARCHAR(100),
---     AREAS_ID     DECIMAL(4,0) NOT NULL,
---     CONSTRAINT CONSULTORIOS_PK PRIMARY KEY (ID),
---     CONSTRAINT CONSULTORIOS_AREAS_FK FOREIGN KEY (AREAS_ID)
---         REFERENCES AREAS (ID)
---         ON DELETE RESTRICT
---         ON UPDATE RESTRICT
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+LOCK TABLES `consultas` WRITE;
+/*!40000 ALTER TABLE `consultas` DISABLE KEYS */;
+INSERT INTO `consultas` VALUES (1,'2026-05-01 09:30:00',1,1,'Primera Vez',999999,2),(2,'2026-05-02 11:15:00',1,1,'Subsecuente',999999,2),(3,'2026-05-03 10:00:00',1,1,'Primera Vez',999999,3),(4,'2026-05-03 14:00:00',1,1,'Urgencia',999999,3),(5,'2026-05-04 16:30:00',1,1,'Primera Vez',999999,4),(6,'2026-05-05 08:00:00',1,1,'Primera Vez',999999,5),(7,'2026-05-05 12:45:00',1,1,'Subsecuente',999999,4),(8,'2026-05-06 09:00:00',1,1,'Primera Vez',999999,2),(9,'2026-05-07 20:05:00',1,7,'Primera Vez',999999,6);
+/*!40000 ALTER TABLE `consultas` ENABLE KEYS */;
+UNLOCK TABLES;
 
--- CREATE TABLE DEPARTAMENTOS (
---     ID                 DECIMAL(3,0) NOT NULL,
---     NOMBREDEPARTAMENTO VARCHAR(50),
---     UBICACION          VARCHAR(100),
---     AREAS_ID           DECIMAL(4,0) NOT NULL,
---     CONSTRAINT DEPARTAMENTOS_PK PRIMARY KEY (ID),
---     CONSTRAINT DEPARTAMENTOS_AREAS_FK FOREIGN KEY (AREAS_ID)
---         REFERENCES AREAS (ID)
---         ON DELETE RESTRICT
---         ON UPDATE RESTRICT
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--
+-- Table structure for table `consultorios`
+--
 
--- CREATE TABLE HABITACIONES (
---     ID               DECIMAL(3,0) NOT NULL,
---     NOMBREHABITACION VARCHAR(50),
---     UBICACION        VARCHAR(100),
---     EQUIPAMIENTO     VARCHAR(200),
---     AREAS_ID         DECIMAL(4,0) NOT NULL,
---     CONSTRAINT HABITACIONES_PK PRIMARY KEY (ID),
---     CONSTRAINT HABITACIONES_AREAS_FK FOREIGN KEY (AREAS_ID)
---         REFERENCES AREAS (ID)
---         ON DELETE RESTRICT
---         ON UPDATE RESTRICT
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+DROP TABLE IF EXISTS `consultorios`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `consultorios` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `CONSULTORIO` varchar(50) DEFAULT NULL,
+  `UBICACION` varchar(100) DEFAULT NULL,
+  `AREAS_ID` decimal(4,0) NOT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `CONSULTORIOS_AREAS_FK` (`AREAS_ID`),
+  CONSTRAINT `CONSULTORIOS_AREAS_FK` FOREIGN KEY (`AREAS_ID`) REFERENCES `areas` (`ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- CREATE TABLE LABORATORIOS (
---     ID                DECIMAL(3,0) NOT NULL,
---     NOMBRELABORATORIO VARCHAR(100),
---     UBICACION         VARCHAR(100),
---     AREAS_ID          DECIMAL(4,0) NOT NULL,
---     CONSTRAINT LABORATORIOS_PK PRIMARY KEY (ID),
---     CONSTRAINT LABORATORIOS_AREAS_FK FOREIGN KEY (AREAS_ID)
---         REFERENCES AREAS (ID)
---         ON DELETE RESTRICT
---         ON UPDATE RESTRICT
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--
+-- Dumping data for table `consultorios`
+--
 
--- CREATE TABLE MEDICOS (
---     EXPEDIENTE        DECIMAL(6,0) NOT NULL,
---     APELLIDOPATERNO  VARCHAR(40),
---     APELLIDOMATERNO   VARCHAR(40),
---     NOMBRE            VARCHAR(40),
---     TELEFONOMOVIL     BIGINT,
---     TELEFONOCASA      BIGINT,
---     ESPECIALIDADES_ID DECIMAL(2,0) NOT NULL,
---     HOSPITAL_UNI_ORG  VARCHAR(5) NOT NULL,
---     CONSTRAINT MEDICOS_PK PRIMARY KEY (EXPEDIENTE),
---     CONSTRAINT MEDICOS_ESPECIALIDADES_FK FOREIGN KEY (ESPECIALIDADES_ID)
---         REFERENCES ESPECIALIDADES (ID)
---         ON DELETE RESTRICT
---         ON UPDATE RESTRICT,
---     CONSTRAINT MEDICOS_HOSPITAL_FK FOREIGN KEY (HOSPITAL_UNI_ORG)
---         REFERENCES HOSPITAL (UNI_ORG)
---         ON DELETE RESTRICT
---         ON UPDATE RESTRICT
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+LOCK TABLES `consultorios` WRITE;
+/*!40000 ALTER TABLE `consultorios` DISABLE KEYS */;
+INSERT INTO `consultorios` VALUES (1,'Consultorio Nutrición','Piso 1, Ala A',4),(2,'Consultorio Odontología','Planta Baja',4),(3,'Consultorio Psicología','Piso 2, Ala B',4),(4,'Sala Electrocardiogramas','Piso 1, Ala C',4),(5,'Medicina General','Planta Baja',4),(7,'sanchezland','dodododododooo',4),(8,'Consultorio de chapa','Loll',4);
+/*!40000 ALTER TABLE `consultorios` ENABLE KEYS */;
+UNLOCK TABLES;
 
--- CREATE TABLE QUIROFANOS (
---     ID              DECIMAL(4,0) NOT NULL,
---     NOMBREQUIROFANO VARCHAR(50),
---     UBICACION       VARCHAR(100),
---     AREAS_ID        DECIMAL(4,0) NOT NULL,
---     CONSTRAINT QUIROFANOS_PK PRIMARY KEY (ID),
---     CONSTRAINT QUIROFANOS_AREAS_FK FOREIGN KEY (AREAS_ID)
---         REFERENCES AREAS (ID)
---         ON DELETE RESTRICT
---         ON UPDATE RESTRICT
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--
+-- Table structure for table `departamentos`
+--
 
--- CREATE TABLE TIPOPROCEDIMIENTO (
---     ID                  DECIMAL(3,0) NOT NULL,
---     NOMBREPROCEDIMIENTO VARCHAR(100),
---     REQUISITOS          VARCHAR(200),
---     ESTATUS             DECIMAL(1,0),
---     CONSTRAINT TIPOPROCEDIMIENTO_PK PRIMARY KEY (ID)
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+DROP TABLE IF EXISTS `departamentos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `departamentos` (
+  `ID` decimal(3,0) NOT NULL,
+  `NOMBREDEPARTAMENTO` varchar(50) DEFAULT NULL,
+  `UBICACION` varchar(100) DEFAULT NULL,
+  `AREAS_ID` decimal(4,0) NOT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `DEPARTAMENTOS_AREAS_FK` (`AREAS_ID`),
+  CONSTRAINT `DEPARTAMENTOS_AREAS_FK` FOREIGN KEY (`AREAS_ID`) REFERENCES `areas` (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- CREATE TABLE TIPOESTUDIOS (
---     ID                DECIMAL(4,0) NOT NULL,
---     NOMBREESTUDIO     VARCHAR(100),
---     REQUISITOSESTUDIO VARCHAR(250),
---     COSTO             DECIMAL(19,4),
---     LABORATORIOS_ID   DECIMAL(3,0) NOT NULL,
---     CONSTRAINT TIPOESTUDIOS_PK PRIMARY KEY (ID),
---     CONSTRAINT TIPOESTUDIOS_LABORATORIOS_FK FOREIGN KEY (LABORATORIOS_ID)
---         REFERENCES LABORATORIOS (ID)
---         ON DELETE RESTRICT
---         ON UPDATE RESTRICT
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--
+-- Dumping data for table `departamentos`
+--
 
--- CREATE TABLE INGRESOS (
---     ID                 DECIMAL(6,0) NOT NULL,
---     TIPO               DECIMAL(2,0),
---     FECHAINGRESO       DATETIME,
---     OBSERVACIONES      VARCHAR(255),
---     MEDICOS_EXPEDIENTE DECIMAL(6,0) NOT NULL,
---     HABITACIONES_ID    DECIMAL(3,0) NOT NULL,
---     CONSTRAINT INGRESOS_PK PRIMARY KEY (ID, HABITACIONES_ID),
---     CONSTRAINT INGRESOS_MEDICOS_FK FOREIGN KEY (MEDICOS_EXPEDIENTE)
---         REFERENCES MEDICOS (EXPEDIENTE)
---         ON DELETE RESTRICT
---         ON UPDATE RESTRICT,
---     CONSTRAINT INGRESOS_HABITACIONES_FK FOREIGN KEY (HABITACIONES_ID)
---         REFERENCES HABITACIONES (ID)
---         ON DELETE RESTRICT
---         ON UPDATE RESTRICT
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+LOCK TABLES `departamentos` WRITE;
+/*!40000 ALTER TABLE `departamentos` DISABLE KEYS */;
+INSERT INTO `departamentos` VALUES (-1,'contabilidad','OK',4);
+/*!40000 ALTER TABLE `departamentos` ENABLE KEYS */;
+UNLOCK TABLES;
 
--- CREATE TABLE EGRESOS (
---     ID              DECIMAL(6,0) NOT NULL,
---     TIPO            DECIMAL(2,0),
---     INGRESOS_ID     DECIMAL(6,0) NOT NULL,
---     FECHAEGRESO     DATETIME,
---     OBSERVACIONES   VARCHAR(255),
---     HABITACIONES_ID DECIMAL(3,0) NOT NULL,
---     CONSTRAINT EGRESOS_PK PRIMARY KEY (ID, HABITACIONES_ID),
---     CONSTRAINT EGRESOS_HABITACIONES_FK FOREIGN KEY (HABITACIONES_ID)
---         REFERENCES HABITACIONES (ID)
---         ON DELETE RESTRICT
---         ON UPDATE RESTRICT,
---     CONSTRAINT EGRESOS_INGRESOS_FK FOREIGN KEY (INGRESOS_ID, HABITACIONES_ID)
---         REFERENCES INGRESOS (ID, HABITACIONES_ID)
---         ON DELETE RESTRICT
---         ON UPDATE RESTRICT,
---     CONSTRAINT EGRESOS__IDX UNIQUE (INGRESOS_ID)
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--
+-- Table structure for table `egresos`
+--
 
--- CREATE TABLE CONSULTAS (
---     ID                 DECIMAL(6,0) NOT NULL,
---     FECHACONSULTA      DATETIME,
---     ESTATUS            DECIMAL(2,0),
---     CONSULTORIOS_ID    DECIMAL(3,0) NOT NULL,
---     TIPOCONSULTA       VARCHAR(50),
---     MEDICOS_EXPEDIENTE DECIMAL(6,0) NOT NULL,
---     CONSTRAINT CONSULTAS_PK PRIMARY KEY (ID),
---     CONSTRAINT CONSULTAS_CONSULTORIOS_FK FOREIGN KEY (CONSULTORIOS_ID)
---         REFERENCES CONSULTORIOS (ID)
---         ON DELETE RESTRICT
---         ON UPDATE RESTRICT,
---     CONSTRAINT CONSULTAS_MEDICOS_FK FOREIGN KEY (MEDICOS_EXPEDIENTE)
---         REFERENCES MEDICOS (EXPEDIENTE)
---         ON DELETE RESTRICT
---         ON UPDATE RESTRICT
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+DROP TABLE IF EXISTS `egresos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `egresos` (
+  `ID` decimal(6,0) NOT NULL,
+  `TIPO` decimal(2,0) DEFAULT NULL,
+  `INGRESOS_ID` decimal(6,0) NOT NULL,
+  `FECHAEGRESO` datetime DEFAULT NULL,
+  `OBSERVACIONES` varchar(255) DEFAULT NULL,
+  `HABITACIONES_ID` decimal(3,0) NOT NULL,
+  PRIMARY KEY (`ID`,`HABITACIONES_ID`),
+  UNIQUE KEY `EGRESOS__IDX` (`INGRESOS_ID`),
+  KEY `EGRESOS_HABITACIONES_FK` (`HABITACIONES_ID`),
+  KEY `EGRESOS_INGRESOS_FK` (`INGRESOS_ID`,`HABITACIONES_ID`),
+  CONSTRAINT `EGRESOS_HABITACIONES_FK` FOREIGN KEY (`HABITACIONES_ID`) REFERENCES `habitaciones` (`ID`),
+  CONSTRAINT `EGRESOS_INGRESOS_FK` FOREIGN KEY (`INGRESOS_ID`, `HABITACIONES_ID`) REFERENCES `ingresos` (`ID`, `HABITACIONES_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- CREATE TABLE ESTUDIOS (
---     ID                 DECIMAL(6,0) NOT NULL,
---     TIPOESTUDIOS_ID    DECIMAL(4,0) NOT NULL,
---     MEDICOS_EXPEDIENTE DECIMAL(6,0) NOT NULL,
---     FECHAESTUDIO       DATETIME,
---     ESTATUS            DECIMAL(2,0),
---     CONSTRAINT ESTUDIOS_PK PRIMARY KEY (ID),
---     CONSTRAINT ESTUDIOS_MEDICOS_FK FOREIGN KEY (MEDICOS_EXPEDIENTE)
---         REFERENCES MEDICOS (EXPEDIENTE)
---         ON DELETE RESTRICT
---         ON UPDATE RESTRICT,
---     CONSTRAINT ESTUDIOS_TIPOESTUDIOS_FK FOREIGN KEY (TIPOESTUDIOS_ID)
---         REFERENCES TIPOESTUDIOS (ID)
---         ON DELETE RESTRICT
---         ON UPDATE RESTRICT
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--
+-- Dumping data for table `egresos`
+--
 
--- CREATE TABLE PROCQUIRURGICOS (
---     ID                    DECIMAL(6,0) NOT NULL,
---     TIPO                  DECIMAL(3,0),
---     FECHAPROCEDIMIENTO    DATETIME,
---     ESTATUS               DECIMAL(2,0),
---     QUIROFANOS_ID         DECIMAL(4,0) NOT NULL,
---     MEDICOS_EXPEDIENTE    DECIMAL(6,0) NOT NULL,
---     TIPOPROCEDIMIENTO_ID  DECIMAL(3,0) NOT NULL,
---     ID1                   DECIMAL(4,0) NOT NULL,
---     CONSTRAINT PROCQUIRURGICOS_PK PRIMARY KEY (ID),
---     CONSTRAINT PROCQUIRURGICOS_MEDICOS_FK FOREIGN KEY (MEDICOS_EXPEDIENTE)
---         REFERENCES MEDICOS (EXPEDIENTE)
---         ON DELETE RESTRICT
---         ON UPDATE RESTRICT,
---     CONSTRAINT PROCQUIRURGICOS_QUIROFANOS_FK FOREIGN KEY (QUIROFANOS_ID)
---         REFERENCES QUIROFANOS (ID)
---         ON DELETE RESTRICT
---         ON UPDATE RESTRICT,
---     CONSTRAINT PROCQUIRURGICOS_TIPOPROCEDIMIENTO_FK FOREIGN KEY (TIPOPROCEDIMIENTO_ID)
---         REFERENCES TIPOPROCEDIMIENTO (ID)
---         ON DELETE RESTRICT
---         ON UPDATE RESTRICT
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+LOCK TABLES `egresos` WRITE;
+/*!40000 ALTER TABLE `egresos` DISABLE KEYS */;
+INSERT INTO `egresos` VALUES (2,2,2,'2026-05-05 18:37:00','Pepe fernandez, salio bien',3);
+/*!40000 ALTER TABLE `egresos` ENABLE KEYS */;
+UNLOCK TABLES;
 
--- -- =========================
--- -- LOGIN
--- -- =========================
+--
+-- Table structure for table `especialidades`
+--
 
--- CREATE TABLE usuarios (
---     id             INT NOT NULL AUTO_INCREMENT,
---     username       VARCHAR(50) NOT NULL,
---     correo         VARCHAR(100),
---     password_hash  VARCHAR(255) NOT NULL,
---     nombre         VARCHAR(100) NOT NULL,
---     estatus        TINYINT NOT NULL DEFAULT 1,
---     fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
---     CONSTRAINT usuarios_pk PRIMARY KEY (id),
---     CONSTRAINT usuarios_username_uk UNIQUE (username),
---     CONSTRAINT usuarios_correo_uk UNIQUE (correo)
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+DROP TABLE IF EXISTS `especialidades`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `especialidades` (
+  `ID` decimal(2,0) NOT NULL,
+  `ESPECIALIDAD` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- CREATE TABLE roles (
---     id          INT NOT NULL AUTO_INCREMENT,
---     nombre      VARCHAR(50) NOT NULL,
---     descripcion VARCHAR(150),
---     CONSTRAINT roles_pk PRIMARY KEY (id),
---     CONSTRAINT roles_nombre_uk UNIQUE (nombre)
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--
+-- Dumping data for table `especialidades`
+--
 
--- CREATE TABLE usuario_roles (
---     id         INT NOT NULL AUTO_INCREMENT,
---     usuario_id INT NOT NULL,
---     rol_id     INT NOT NULL,
---     CONSTRAINT usuario_roles_pk PRIMARY KEY (id),
---     CONSTRAINT usuario_roles_usuario_fk FOREIGN KEY (usuario_id)
---         REFERENCES usuarios (id)
---         ON DELETE CASCADE
---         ON UPDATE RESTRICT,
---     CONSTRAINT usuario_roles_rol_fk FOREIGN KEY (rol_id)
---         REFERENCES roles (id)
---         ON DELETE RESTRICT
---         ON UPDATE RESTRICT,
---     CONSTRAINT usuario_roles_uk UNIQUE (usuario_id, rol_id)
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+LOCK TABLES `especialidades` WRITE;
+/*!40000 ALTER TABLE `especialidades` DISABLE KEYS */;
+INSERT INTO `especialidades` VALUES (7,'DoWhilerogia');
+/*!40000 ALTER TABLE `especialidades` ENABLE KEYS */;
+UNLOCK TABLES;
 
--- CREATE TABLE usuario_medico (
---     id                INT NOT NULL AUTO_INCREMENT,
---     usuario_id        INT NOT NULL,
---     medico_expediente DECIMAL(6,0) NOT NULL,
---     CONSTRAINT usuario_medico_pk PRIMARY KEY (id),
---     CONSTRAINT usuario_medico_usuario_fk FOREIGN KEY (usuario_id)
---         REFERENCES usuarios (id)
---         ON DELETE CASCADE
---         ON UPDATE RESTRICT,
---     CONSTRAINT usuario_medico_medico_fk FOREIGN KEY (medico_expediente)
---         REFERENCES MEDICOS (EXPEDIENTE)
---         ON DELETE RESTRICT
---         ON UPDATE RESTRICT,
---     CONSTRAINT usuario_medico_uk UNIQUE (usuario_id, medico_expediente)
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--
+-- Table structure for table `estudios`
+--
 
--- INSERT INTO roles (nombre, descripcion) VALUES
--- ('Administrador', 'Acceso total al sistema'),
--- ('Recepcion', 'Gestion de ingresos y egresos'),
--- ('Medico', 'Gestion de consultas, estudios y procedimientos'),
--- ('Laboratorio', 'Gestion de estudios'),
--- ('Quirofano', 'Gestion de procedimientos quirurgicos');
+DROP TABLE IF EXISTS `estudios`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `estudios` (
+  `ID` decimal(6,0) NOT NULL,
+  `TIPOESTUDIOS_ID` decimal(4,0) NOT NULL,
+  `MEDICOS_EXPEDIENTE` decimal(6,0) NOT NULL,
+  `FECHAESTUDIO` datetime DEFAULT NULL,
+  `ESTATUS` decimal(2,0) DEFAULT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `ESTUDIOS_MEDICOS_FK` (`MEDICOS_EXPEDIENTE`),
+  KEY `ESTUDIOS_TIPOESTUDIOS_FK` (`TIPOESTUDIOS_ID`),
+  CONSTRAINT `ESTUDIOS_MEDICOS_FK` FOREIGN KEY (`MEDICOS_EXPEDIENTE`) REFERENCES `medicos` (`EXPEDIENTE`),
+  CONSTRAINT `ESTUDIOS_TIPOESTUDIOS_FK` FOREIGN KEY (`TIPOESTUDIOS_ID`) REFERENCES `tipoestudios` (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `estudios`
+--
+
+LOCK TABLES `estudios` WRITE;
+/*!40000 ALTER TABLE `estudios` DISABLE KEYS */;
+INSERT INTO `estudios` VALUES (1,1,999999,'2026-05-05 18:41:00',2);
+/*!40000 ALTER TABLE `estudios` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `habitaciones`
+--
+
+DROP TABLE IF EXISTS `habitaciones`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `habitaciones` (
+  `ID` decimal(3,0) NOT NULL,
+  `NOMBREHABITACION` varchar(50) DEFAULT NULL,
+  `UBICACION` varchar(100) DEFAULT NULL,
+  `EQUIPAMIENTO` varchar(200) DEFAULT NULL,
+  `AREAS_ID` decimal(4,0) NOT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `HABITACIONES_AREAS_FK` (`AREAS_ID`),
+  CONSTRAINT `HABITACIONES_AREAS_FK` FOREIGN KEY (`AREAS_ID`) REFERENCES `areas` (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `habitaciones`
+--
+
+LOCK TABLES `habitaciones` WRITE;
+/*!40000 ALTER TABLE `habitaciones` DISABLE KEYS */;
+INSERT INTO `habitaciones` VALUES (3,'Habitacion Pepe','Polo norte','Maquina de radiografias',4);
+/*!40000 ALTER TABLE `habitaciones` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `hospital`
+--
+
+DROP TABLE IF EXISTS `hospital`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `hospital` (
+  `UNI_ORG` varchar(5) NOT NULL,
+  `NOMUO` varchar(80) DEFAULT NULL,
+  `DIRECCION` varchar(100) DEFAULT NULL,
+  `DIRECTOR` varchar(60) DEFAULT NULL,
+  `TELEFONO` bigint(20) DEFAULT NULL,
+  PRIMARY KEY (`UNI_ORG`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `hospital`
+--
+
+LOCK TABLES `hospital` WRITE;
+/*!40000 ALTER TABLE `hospital` DISABLE KEYS */;
+INSERT INTO `hospital` VALUES ('H0001','Hospital Dowhiler','Calle 17, 1776, Ciudad Mirasierra, Saltillo','Dr. Jaime Coronel',8441306241);
+/*!40000 ALTER TABLE `hospital` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `ingresos`
+--
+
+DROP TABLE IF EXISTS `ingresos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `ingresos` (
+  `ID` decimal(6,0) NOT NULL,
+  `TIPO` decimal(2,0) DEFAULT NULL,
+  `FECHAINGRESO` datetime DEFAULT NULL,
+  `OBSERVACIONES` varchar(255) DEFAULT NULL,
+  `MEDICOS_EXPEDIENTE` decimal(6,0) NOT NULL,
+  `HABITACIONES_ID` decimal(3,0) NOT NULL,
+  PRIMARY KEY (`ID`,`HABITACIONES_ID`),
+  KEY `INGRESOS_MEDICOS_FK` (`MEDICOS_EXPEDIENTE`),
+  KEY `INGRESOS_HABITACIONES_FK` (`HABITACIONES_ID`),
+  CONSTRAINT `INGRESOS_HABITACIONES_FK` FOREIGN KEY (`HABITACIONES_ID`) REFERENCES `habitaciones` (`ID`),
+  CONSTRAINT `INGRESOS_MEDICOS_FK` FOREIGN KEY (`MEDICOS_EXPEDIENTE`) REFERENCES `medicos` (`EXPEDIENTE`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `ingresos`
+--
+
+LOCK TABLES `ingresos` WRITE;
+/*!40000 ALTER TABLE `ingresos` DISABLE KEYS */;
+INSERT INTO `ingresos` VALUES (1,1,'2026-05-05 18:35:00',NULL,999999,3),(2,2,'2026-05-05 18:37:00','Pepe fernandez',999999,3);
+/*!40000 ALTER TABLE `ingresos` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `laboratorios`
+--
+
+DROP TABLE IF EXISTS `laboratorios`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `laboratorios` (
+  `ID` decimal(3,0) NOT NULL,
+  `NOMBRELABORATORIO` varchar(100) DEFAULT NULL,
+  `UBICACION` varchar(100) DEFAULT NULL,
+  `AREAS_ID` decimal(4,0) NOT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `LABORATORIOS_AREAS_FK` (`AREAS_ID`),
+  CONSTRAINT `LABORATORIOS_AREAS_FK` FOREIGN KEY (`AREAS_ID`) REFERENCES `areas` (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `laboratorios`
+--
+
+LOCK TABLES `laboratorios` WRITE;
+/*!40000 ALTER TABLE `laboratorios` DISABLE KEYS */;
+INSERT INTO `laboratorios` VALUES (1,'DoWhileLabs','ok',4);
+/*!40000 ALTER TABLE `laboratorios` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `medicos`
+--
+
+DROP TABLE IF EXISTS `medicos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `medicos` (
+  `EXPEDIENTE` decimal(6,0) NOT NULL,
+  `APELLIDOPATERNO` varchar(40) DEFAULT NULL,
+  `APELLIDOMATERNO` varchar(40) DEFAULT NULL,
+  `NOMBRE` varchar(40) DEFAULT NULL,
+  `TELEFONOMOVIL` bigint(20) DEFAULT NULL,
+  `TELEFONOCASA` bigint(20) DEFAULT NULL,
+  `ESPECIALIDADES_ID` decimal(2,0) NOT NULL,
+  `HOSPITAL_UNI_ORG` varchar(5) NOT NULL,
+  PRIMARY KEY (`EXPEDIENTE`),
+  KEY `MEDICOS_ESPECIALIDADES_FK` (`ESPECIALIDADES_ID`),
+  KEY `MEDICOS_HOSPITAL_FK` (`HOSPITAL_UNI_ORG`),
+  CONSTRAINT `MEDICOS_ESPECIALIDADES_FK` FOREIGN KEY (`ESPECIALIDADES_ID`) REFERENCES `especialidades` (`ID`),
+  CONSTRAINT `MEDICOS_HOSPITAL_FK` FOREIGN KEY (`HOSPITAL_UNI_ORG`) REFERENCES `hospital` (`UNI_ORG`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `medicos`
+--
+
+LOCK TABLES `medicos` WRITE;
+/*!40000 ALTER TABLE `medicos` DISABLE KEYS */;
+INSERT INTO `medicos` VALUES (999999,'Sanchez','Jaramillo','Angel',8421158123,84430948743333333,7,'H0001');
+/*!40000 ALTER TABLE `medicos` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `procquirurgicos`
+--
+
+DROP TABLE IF EXISTS `procquirurgicos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `procquirurgicos` (
+  `ID` decimal(6,0) NOT NULL,
+  `TIPO` decimal(3,0) DEFAULT NULL,
+  `FECHAPROCEDIMIENTO` datetime DEFAULT NULL,
+  `ESTATUS` decimal(2,0) DEFAULT NULL,
+  `QUIROFANOS_ID` decimal(4,0) NOT NULL,
+  `MEDICOS_EXPEDIENTE` decimal(6,0) NOT NULL,
+  `TIPOPROCEDIMIENTO_ID` decimal(3,0) NOT NULL,
+  `ID1` decimal(4,0) NOT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `PROCQUIRURGICOS_MEDICOS_FK` (`MEDICOS_EXPEDIENTE`),
+  KEY `PROCQUIRURGICOS_QUIROFANOS_FK` (`QUIROFANOS_ID`),
+  KEY `PROCQUIRURGICOS_TIPOPROCEDIMIENTO_FK` (`TIPOPROCEDIMIENTO_ID`),
+  CONSTRAINT `PROCQUIRURGICOS_MEDICOS_FK` FOREIGN KEY (`MEDICOS_EXPEDIENTE`) REFERENCES `medicos` (`EXPEDIENTE`),
+  CONSTRAINT `PROCQUIRURGICOS_QUIROFANOS_FK` FOREIGN KEY (`QUIROFANOS_ID`) REFERENCES `quirofanos` (`ID`),
+  CONSTRAINT `PROCQUIRURGICOS_TIPOPROCEDIMIENTO_FK` FOREIGN KEY (`TIPOPROCEDIMIENTO_ID`) REFERENCES `tipoprocedimiento` (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `procquirurgicos`
+--
+
+LOCK TABLES `procquirurgicos` WRITE;
+/*!40000 ALTER TABLE `procquirurgicos` DISABLE KEYS */;
+/*!40000 ALTER TABLE `procquirurgicos` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `quirofanos`
+--
+
+DROP TABLE IF EXISTS `quirofanos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `quirofanos` (
+  `ID` decimal(4,0) NOT NULL,
+  `NOMBREQUIROFANO` varchar(50) DEFAULT NULL,
+  `UBICACION` varchar(100) DEFAULT NULL,
+  `AREAS_ID` decimal(4,0) NOT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `QUIROFANOS_AREAS_FK` (`AREAS_ID`),
+  CONSTRAINT `QUIROFANOS_AREAS_FK` FOREIGN KEY (`AREAS_ID`) REFERENCES `areas` (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `quirofanos`
+--
+
+LOCK TABLES `quirofanos` WRITE;
+/*!40000 ALTER TABLE `quirofanos` DISABLE KEYS */;
+INSERT INTO `quirofanos` VALUES (1,'QuiroWhile','1',4);
+/*!40000 ALTER TABLE `quirofanos` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `roles`
+--
+
+DROP TABLE IF EXISTS `roles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `roles` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(50) NOT NULL,
+  `descripcion` varchar(150) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `roles_nombre_uk` (`nombre`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `roles`
+--
+
+LOCK TABLES `roles` WRITE;
+/*!40000 ALTER TABLE `roles` DISABLE KEYS */;
+INSERT INTO `roles` VALUES (1,'Administrador','Acceso total al sistema'),(2,'Recepcion','Gestion de ingresos y egresos'),(3,'Medico','Gestion de consultas, estudios y procedimientos'),(4,'Laboratorio','Gestion de estudios'),(5,'Quirofano','Gestion de procedimientos quirurgicos');
+/*!40000 ALTER TABLE `roles` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `tipoestudios`
+--
+
+DROP TABLE IF EXISTS `tipoestudios`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `tipoestudios` (
+  `ID` decimal(4,0) NOT NULL,
+  `NOMBREESTUDIO` varchar(100) DEFAULT NULL,
+  `REQUISITOSESTUDIO` varchar(250) DEFAULT NULL,
+  `COSTO` decimal(19,4) DEFAULT NULL,
+  `LABORATORIOS_ID` decimal(3,0) NOT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `TIPOESTUDIOS_LABORATORIOS_FK` (`LABORATORIOS_ID`),
+  CONSTRAINT `TIPOESTUDIOS_LABORATORIOS_FK` FOREIGN KEY (`LABORATORIOS_ID`) REFERENCES `laboratorios` (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `tipoestudios`
+--
+
+LOCK TABLES `tipoestudios` WRITE;
+/*!40000 ALTER TABLE `tipoestudios` DISABLE KEYS */;
+INSERT INTO `tipoestudios` VALUES (1,'DOWHILER?','Ser dowhiler',10000.0000,1);
+/*!40000 ALTER TABLE `tipoestudios` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `tipoprocedimiento`
+--
+
+DROP TABLE IF EXISTS `tipoprocedimiento`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `tipoprocedimiento` (
+  `ID` decimal(3,0) NOT NULL,
+  `NOMBREPROCEDIMIENTO` varchar(100) DEFAULT NULL,
+  `REQUISITOS` varchar(200) DEFAULT NULL,
+  `ESTATUS` decimal(1,0) DEFAULT NULL,
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `tipoprocedimiento`
+--
+
+LOCK TABLES `tipoprocedimiento` WRITE;
+/*!40000 ALTER TABLE `tipoprocedimiento` DISABLE KEYS */;
+/*!40000 ALTER TABLE `tipoprocedimiento` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `tipos_servicios`
+--
+
+DROP TABLE IF EXISTS `tipos_servicios`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `tipos_servicios` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `NOMBRESERVICIO` varchar(100) DEFAULT NULL,
+  `DESCRIPCION` varchar(200) DEFAULT NULL,
+  `ESTATUS` decimal(1,0) DEFAULT 1,
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `tipos_servicios`
+--
+
+LOCK TABLES `tipos_servicios` WRITE;
+/*!40000 ALTER TABLE `tipos_servicios` DISABLE KEYS */;
+INSERT INTO `tipos_servicios` VALUES (1,'Medicina General','Consulta general y especialidades médicas',1),(2,'Nutrición','Servicio de nutrición y control de peso',1),(3,'Odontología','Consulta dental',1),(4,'Psicología','Terapia psicológica',1),(5,'Electrocardiogramas','Servicio de estudios de ECG',1),(6,'juan',NULL,1);
+/*!40000 ALTER TABLE `tipos_servicios` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `usuario_medico`
+--
+
+DROP TABLE IF EXISTS `usuario_medico`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `usuario_medico` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `usuario_id` int(11) NOT NULL,
+  `medico_expediente` decimal(6,0) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `usuario_medico_uk` (`usuario_id`,`medico_expediente`),
+  KEY `usuario_medico_medico_fk` (`medico_expediente`),
+  CONSTRAINT `usuario_medico_medico_fk` FOREIGN KEY (`medico_expediente`) REFERENCES `medicos` (`EXPEDIENTE`),
+  CONSTRAINT `usuario_medico_usuario_fk` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `usuario_medico`
+--
+
+LOCK TABLES `usuario_medico` WRITE;
+/*!40000 ALTER TABLE `usuario_medico` DISABLE KEYS */;
+/*!40000 ALTER TABLE `usuario_medico` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `usuario_roles`
+--
+
+DROP TABLE IF EXISTS `usuario_roles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `usuario_roles` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `usuario_id` int(11) NOT NULL,
+  `rol_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `usuario_roles_uk` (`usuario_id`,`rol_id`),
+  KEY `usuario_roles_rol_fk` (`rol_id`),
+  CONSTRAINT `usuario_roles_rol_fk` FOREIGN KEY (`rol_id`) REFERENCES `roles` (`id`),
+  CONSTRAINT `usuario_roles_usuario_fk` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `usuario_roles`
+--
+
+LOCK TABLES `usuario_roles` WRITE;
+/*!40000 ALTER TABLE `usuario_roles` DISABLE KEYS */;
+INSERT INTO `usuario_roles` VALUES (1,1,1);
+/*!40000 ALTER TABLE `usuario_roles` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `usuarios`
+--
+
+DROP TABLE IF EXISTS `usuarios`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `usuarios` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL,
+  `correo` varchar(100) DEFAULT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `nombre` varchar(100) NOT NULL,
+  `estatus` tinyint(4) NOT NULL DEFAULT 1,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `usuarios_username_uk` (`username`),
+  UNIQUE KEY `usuarios_correo_uk` (`correo`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `usuarios`
+--
+
+LOCK TABLES `usuarios` WRITE;
+/*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
+INSERT INTO `usuarios` VALUES (1,'admin','admin@hospital.com','$2y$10$E6HJCei3NLXtaFxJksvEn.dSxy.Y/G6GBInUVzOt4OVq1thOaVaZ2','Administrador General',1,'2026-05-05 18:17:31');
+/*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `otros_procedimientos_quirofano`
+--
+
+DROP TABLE IF EXISTS `otros_procedimientos_quirofano`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `otros_procedimientos_quirofano` (
+  `ID` decimal(6,0) NOT NULL,
+  `DESCRIPCION` varchar(255) DEFAULT NULL,
+  `FECHAPROCEDIMIENTO` datetime DEFAULT NULL,
+  `ESTATUS` decimal(2,0) DEFAULT NULL,
+  `QUIROFANOS_ID` decimal(4,0) NOT NULL,
+  `MEDICOS_EXPEDIENTE` decimal(6,0) NOT NULL,
+  `ID1` decimal(4,0) NOT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `OTROS_PROC_QUIROFANO_MEDICOS_FK` (`MEDICOS_EXPEDIENTE`),
+  KEY `OTROS_PROC_QUIROFANO_QUIROFANOS_FK` (`QUIROFANOS_ID`),
+  CONSTRAINT `OTROS_PROC_QUIROFANO_MEDICOS_FK` FOREIGN KEY (`MEDICOS_EXPEDIENTE`) REFERENCES `medicos` (`EXPEDIENTE`),
+  CONSTRAINT `OTROS_PROC_QUIROFANO_QUIROFANOS_FK` FOREIGN KEY (`QUIROFANOS_ID`) REFERENCES `quirofanos` (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `otros_procedimientos_quirofano`
+--
+
+LOCK TABLES `otros_procedimientos_quirofano` WRITE;
+/*!40000 ALTER TABLE `otros_procedimientos_quirofano` DISABLE KEYS */;
+/*!40000 ALTER TABLE `otros_procedimientos_quirofano` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2026-05-07 20:07:55
