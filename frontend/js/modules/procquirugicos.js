@@ -5,6 +5,16 @@ window.Modules.procquirugicos = {
   medicos: [],
   tiposProcedimiento: [],
 
+  // Estado de filtros activos
+  activeFilters: {
+    search: "",
+    tipoAtencion: "",
+    quirofano: "",
+    tipoProcedimiento: "",
+    fechaDesde: "",
+    fechaHasta: ""
+  },
+
   async init() {
     this.renderLayout();
     await Promise.all([
@@ -16,31 +26,217 @@ window.Modules.procquirugicos = {
   },
 
   renderLayout() {
-    const contentArea = document.getElementById("contentArea");
-    contentArea.innerHTML = `
-      <div class="card" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
-        <div style="flex: 1; max-width: 400px;">
-          <input type="text" id="procSearch" class="form-group" style="margin-bottom: 0; width: 100%;" placeholder="🔍 Buscar por ID, quirófano, médico o procedimiento...">
+  const contentArea = document.getElementById("contentArea");
+  contentArea.innerHTML = `
+    <!-- Barra superior de filtros -->
+    <div class="card" style="margin-bottom: 1rem; padding: 1rem;">
+      <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;">
+        
+        <!-- Búsqueda General -->
+        <div style="flex: 2 1 250px;">
+          <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-light); margin-bottom: 5px; display: block; text-transform: uppercase;">Búsqueda</label>
+          <input type="text" id="procSearch" 
+            style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text);" 
+            placeholder="🔍 ID, médico, procedimiento...">
         </div>
-        <button id="addProcBtn" class="btn btn-primary">
-          <span>+</span> Registrar Procedimiento
-        </button>
+
+        <!-- Filtro Quirófano -->
+        <div style="flex: 1 1 180px;">
+          <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-light); margin-bottom: 5px; display: block; text-transform: uppercase;">Quirófano</label>
+          <select id="filterQuirofano" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text);">
+            <option value="">Todos</option>
+          </select>
+        </div>
+
+        <!-- Filtro Tipo Procedimiento -->
+        <div style="flex: 1 1 180px;">
+          <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-light); margin-bottom: 5px; display: block; text-transform: uppercase;">Procedimiento</label>
+          <select id="filterTipoProcedimiento" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text);">
+            <option value="">Todos</option>
+          </select>
+        </div>
+
+        <!-- Rango de Fechas -->
+        <div style="flex: 1 1 150px;">
+          <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-light); margin-bottom: 5px; display: block; text-transform: uppercase;">Desde</label>
+          <input type="date" id="filterFechaDesde" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text);">
+        </div>
+
+        <div style="flex: 1 1 150px;">
+          <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-light); margin-bottom: 5px; display: block; text-transform: uppercase;">Hasta</label>
+          <input type="date" id="filterFechaHasta" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text);">
+        </div>
+
+        <!-- Botones de Acción -->
+        <div style="flex: 1 1 auto; display: flex; gap: 0.5rem; justify-content: flex-end;">
+          <button id="clearFiltersBtn" class="btn btn-secondary" style="height: 38px; white-space: nowrap;" title="Limpiar filtros">
+            ✕ Limpiar
+          </button>
+          <button id="addProcBtn" class="btn btn-primary" style="height: 38px; white-space: nowrap;">
+            + Nuevo
+          </button>
+        </div>
       </div>
 
-      <div id="procTableContainer" class="table-container"></div>
-    `;
+      <!-- Resumen de filtros -->
+      <div id="filterSummary" style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px dashed var(--border); font-size: 0.85rem; color: var(--text-light); display: none;">
+        <span>Mostrando <strong id="filterCount" style="color: var(--primary);">0</strong> registros</span>
+        <span id="filterActiveLabel" style="margin-left: 0.5rem; font-style: italic;"></span>
+      </div>
+    </div>
 
-    document.getElementById("procSearch").addEventListener("input", (e) => this.filter(e.target.value));
-    document.getElementById("addProcBtn").addEventListener("click", () => this.showModal());
+    <!-- Contenedor de la tabla -->
+    <div id="procTableContainer" class="table-container" style="overflow-x: auto;"></div>
+  `;
+
+  this.setupEventListeners();
+},
+
+setupEventListeners() {
+  const events = [
+    { id: "procSearch", event: "input" },
+    { id: "filterQuirofano", event: "change" },
+    { id: "filterTipoProcedimiento", event: "change" },
+    { id: "filterFechaDesde", event: "change" },
+    { id: "filterFechaHasta", event: "change" }
+  ];
+
+  events.forEach(({ id, event }) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener(event, () => this.applyFilters());
+  });
+
+  document.getElementById("clearFiltersBtn").addEventListener("click", () => this.clearFilters());
+  document.getElementById("addProcBtn").addEventListener("click", () => this.showModal());
+},
+
+  // Rellena los selects de filtro con los catálogos ya cargados
+  populateFilterSelects() {
+    const selQuirofano = document.getElementById("filterQuirofano");
+    const selTipoProc = document.getElementById("filterTipoProcedimiento");
+
+    if (selQuirofano) {
+      const currentVal = selQuirofano.value;
+      selQuirofano.innerHTML = `<option value="">Todos</option>` +
+        this.quirofanos.map(q => `<option value="${q.ID}">${q.NOMBREQUIROFANO}${q.NOMBREAREA ? ` - ${q.NOMBREAREA}` : ''}</option>`).join("");
+      selQuirofano.value = currentVal;
+    }
+
+    if (selTipoProc) {
+      const currentVal = selTipoProc.value;
+      selTipoProc.innerHTML = `<option value="">Todos</option>` +
+        this.tiposProcedimiento.map(t => `<option value="${t.ID}">${t.NOMBREPROCEDIMIENTO}</option>`).join("");
+      selTipoProc.value = currentVal;
+    }
+  },
+
+  applyFilters() {
+    // Leer valores de los controles de filtro
+    this.activeFilters.search            = (document.getElementById("procSearch")?.value || "").toLowerCase();
+    this.activeFilters.tipoAtencion      = document.getElementById("filterTipoAtencion")?.value || "";
+    this.activeFilters.quirofano         = document.getElementById("filterQuirofano")?.value || "";
+    this.activeFilters.tipoProcedimiento = document.getElementById("filterTipoProcedimiento")?.value || "";
+    this.activeFilters.fechaDesde        = document.getElementById("filterFechaDesde")?.value || "";
+    this.activeFilters.fechaHasta        = document.getElementById("filterFechaHasta")?.value || "";
+
+    const { search, tipoAtencion, quirofano, tipoProcedimiento, fechaDesde, fechaHasta } = this.activeFilters;
+
+    this.filteredData = this.data.filter(item => {
+      // Búsqueda de texto libre
+      if (search) {
+        const fullName = `${item.NOMBRE || ""} ${item.APELLIDOPATERNO || ""} ${item.APELLIDOMATERNO || ""}`.toLowerCase();
+        const matchSearch =
+          String(item.ID).includes(search) ||
+          this.getTipoAtencionLabel(item.TIPO).toLowerCase().includes(search) ||
+          (item.NOMBREQUIROFANO || "").toLowerCase().includes(search) ||
+          fullName.includes(search) ||
+          (item.NOMBREPROCEDIMIENTO || "").toLowerCase().includes(search) ||
+          String(item.ID1 || "").includes(search);
+        if (!matchSearch) return false;
+      }
+
+      // Filtro tipo de atención
+      if (tipoAtencion && String(item.TIPO) !== tipoAtencion) return false;
+
+      // Filtro quirófano
+      if (quirofano && String(item.QUIROFANOS_ID) !== quirofano) return false;
+
+      // Filtro tipo de procedimiento
+      if (tipoProcedimiento && String(item.TIPOPROCEDIMIENTO_ID) !== tipoProcedimiento) return false;
+
+      // Filtro rango de fechas
+      if (fechaDesde || fechaHasta) {
+        if (!item.FECHAPROCEDIMIENTO) return false;
+        const fechaItem = new Date(item.FECHAPROCEDIMIENTO.replace(" ", "T"));
+        if (fechaDesde) {
+          const desde = new Date(fechaDesde + "T00:00:00");
+          if (fechaItem < desde) return false;
+        }
+        if (fechaHasta) {
+          const hasta = new Date(fechaHasta + "T23:59:59");
+          if (fechaItem > hasta) return false;
+        }
+      }
+
+      return true;
+    });
+
+    this.updateFilterSummary();
+    this.renderTable();
+  },
+
+  clearFilters() {
+    const ids = ["procSearch", "filterTipoAtencion", "filterQuirofano", "filterTipoProcedimiento", "filterFechaDesde", "filterFechaHasta"];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+
+    this.activeFilters = { search: "", tipoAtencion: "", quirofano: "", tipoProcedimiento: "", fechaDesde: "", fechaHasta: "" };
+
+    this.filteredData = [...this.data];
+    this.updateFilterSummary();
+    this.renderTable();
+  },
+
+  updateFilterSummary() {
+    const summary = document.getElementById("filterSummary");
+    const countEl = document.getElementById("filterCount");
+    const labelEl = document.getElementById("filterActiveLabel");
+    if (!summary) return;
+
+    const { tipoAtencion, quirofano, tipoProcedimiento, fechaDesde, fechaHasta } = this.activeFilters;
+    const hayFiltros = tipoAtencion || quirofano || tipoProcedimiento || fechaDesde || fechaHasta;
+
+    summary.style.display = "block";
+    countEl.textContent = this.filteredData.length;
+
+    if (hayFiltros) {
+      const partes = [];
+      if (tipoAtencion) partes.push(this.getTipoAtencionLabel(tipoAtencion));
+      if (quirofano) {
+        const q = this.quirofanos.find(x => String(x.ID) === quirofano);
+        if (q) partes.push(q.NOMBREQUIROFANO);
+      }
+      if (tipoProcedimiento) {
+        const t = this.tiposProcedimiento.find(x => String(x.ID) === tipoProcedimiento);
+        if (t) partes.push(t.NOMBREPROCEDIMIENTO);
+      }
+      if (fechaDesde && fechaHasta) partes.push(`${fechaDesde} → ${fechaHasta}`);
+      else if (fechaDesde) partes.push(`desde ${fechaDesde}`);
+      else if (fechaHasta) partes.push(`hasta ${fechaHasta}`);
+
+      labelEl.textContent = `· Filtros activos: ${partes.join(", ")}`;
+    } else {
+      labelEl.textContent = "";
+    }
   },
 
   async loadQuirofanos() {
     try {
       const response = await fetch("../api/quirofanos/listar_quirofanos.php", { credentials: "include" });
       const res = await response.json();
-      if (res.ok) {
-        this.quirofanos = res.data;
-      }
+      if (res.ok) this.quirofanos = res.data;
     } catch (error) {
       console.error("Error al cargar quirófanos:", error);
     }
@@ -50,9 +246,7 @@ window.Modules.procquirugicos = {
     try {
       const response = await fetch("../api/medicos/listar_medicos.php", { credentials: "include" });
       const res = await response.json();
-      if (res.ok) {
-        this.medicos = res.data;
-      }
+      if (res.ok) this.medicos = res.data;
     } catch (error) {
       console.error("Error al cargar médicos:", error);
     }
@@ -62,9 +256,7 @@ window.Modules.procquirugicos = {
     try {
       const response = await fetch("../api/tipoprocedimiento/listar_tipoprocedimiento.php", { credentials: "include" });
       const res = await response.json();
-      if (res.ok) {
-        this.tiposProcedimiento = res.data;
-      }
+      if (res.ok) this.tiposProcedimiento = res.data;
     } catch (error) {
       console.error("Error al cargar tipos de procedimiento:", error);
     }
@@ -78,6 +270,8 @@ window.Modules.procquirugicos = {
       if (res.ok) {
         this.data = res.data;
         this.filteredData = [...this.data];
+        this.populateFilterSelects();
+        this.updateFilterSummary();
         this.renderTable();
       } else {
         UI.toast.show(res.message, "error");
@@ -105,7 +299,10 @@ window.Modules.procquirugicos = {
     const container = document.getElementById("procTableContainer");
 
     if (this.filteredData.length === 0) {
-      container.innerHTML = `<div style="padding: 2rem; text-align: center; color: var(--text-light);">No hay procedimientos registrados.</div>`;
+      container.innerHTML = `
+        <div style="padding: 2rem; text-align: center; color: var(--text-light);">
+          No se encontraron procedimientos con los filtros aplicados.
+        </div>`;
       return;
     }
 
@@ -153,22 +350,6 @@ window.Modules.procquirugicos = {
     container.innerHTML = html;
   },
 
-  filter(query) {
-    const q = query.toLowerCase();
-    this.filteredData = this.data.filter(item => {
-      const fullName = `${item.NOMBRE || ""} ${item.APELLIDOPATERNO || ""} ${item.APELLIDOMATERNO || ""}`.toLowerCase();
-      return (
-        String(item.ID).includes(q) ||
-        this.getTipoAtencionLabel(item.TIPO).toLowerCase().includes(q) ||
-        (item.NOMBREQUIROFANO || "").toLowerCase().includes(q) ||
-        fullName.includes(q) ||
-        (item.NOMBREPROCEDIMIENTO || "").toLowerCase().includes(q) ||
-        String(item.ID1 || "").includes(q)
-      );
-    });
-    this.renderTable();
-  },
-
   renderQuirofanoOptions(selectedId = null) {
     return this.quirofanos.map(q => `
       <option value="${q.ID}" ${selectedId == q.ID ? 'selected' : ''}>${q.NOMBREQUIROFANO}${q.NOMBREAREA ? ` - ${q.NOMBREAREA}` : ''}</option>
@@ -188,15 +369,11 @@ window.Modules.procquirugicos = {
   },
 
   getNextConsecutiveId() {
-    if (!Array.isArray(this.data) || this.data.length === 0) {
-      return 1;
-    }
-
+    if (!Array.isArray(this.data) || this.data.length === 0) return 1;
     const maxId = this.data.reduce((max, current) => {
       const currentId = Number(current.ID) || 0;
       return currentId > max ? currentId : max;
     }, 0);
-
     return maxId + 1;
   },
 
@@ -209,8 +386,7 @@ window.Modules.procquirugicos = {
       <form id="procForm">
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-        
-        
+
           <div class="form-group">
             <label for="p_id">ID del Registro</label>
             <input type="number" id="p_id" value="${consecutiveId}" required ${isEdit ? 'readonly' : ''}>
@@ -219,7 +395,7 @@ window.Modules.procquirugicos = {
             <label for="p_id1">ID1 (Interno)</label>
             <input type="number" id="p_id1" value="${item ? item.ID1 : ''}" required>
           </div>
-          
+
           <div class="form-group">
             <label for="p_tipo">Tipo de Atención</label>
             <select id="p_tipo" required>
@@ -260,12 +436,16 @@ window.Modules.procquirugicos = {
         </div>
 
         <div class="form-group">
-          <label for="p_tipoProcedimiento">Tipo de Procedimiento</label>
+          <label for="p_tipoProcedimiento" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Tipo de Procedimiento</span>
+            <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 0.75rem;" id="quickAddTipoProcBtn">+ Nuevo</button>
+          </label>
           <select id="p_tipoProcedimiento" required>
             <option value="">Seleccione un tipo...</option>
             ${this.renderTipoProcedimientoOptions(item ? item.TIPOPROCEDIMIENTO_ID : null)}
           </select>
         </div>
+
       </form>
     `;
 
@@ -276,6 +456,49 @@ window.Modules.procquirugicos = {
 
     UI.modal.show(title, body, footer);
     document.getElementById("saveProcBtn").addEventListener("click", () => this.save(isEdit));
+    document.getElementById("quickAddTipoProcBtn").addEventListener("click", () => this.quickAddTipoProcedimiento());
+  },
+
+  async quickAddTipoProcedimiento() {
+    const nombre = prompt("Ingresa el nombre del nuevo tipo de procedimiento (ej. Apendicectomía):");
+    if (!nombre || nombre.trim() === "") return;
+
+    try {
+      const response = await fetch("../api/tipoprocedimiento/insertar_tipoprocedimiento.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombreprocedimiento: nombre.trim() }),
+        credentials: "include"
+      });
+
+      const res = await response.json();
+
+      if (res.ok) {
+        UI.toast.show(res.message, "success");
+        await this.loadTiposProcedimiento();
+
+        // Actualizar select del modal
+        const select = document.getElementById("p_tipoProcedimiento");
+        select.innerHTML = `
+          <option value="">Seleccione un tipo...</option>
+          ${this.renderTipoProcedimientoOptions()}
+        `;
+
+        // Seleccionar automáticamente el recién creado
+        const newOption = Array.from(select.options).find(
+          opt => opt.text.toLowerCase() === nombre.trim().toLowerCase()
+        );
+        if (newOption) select.value = newOption.value;
+
+        // Actualizar también el select del filtro
+        this.populateFilterSelects();
+
+      } else {
+        UI.toast.show(res.message, "error");
+      }
+    } catch (e) {
+      UI.toast.show("Error al crear tipo de procedimiento", "error");
+    }
   },
 
   async save(isEdit) {
