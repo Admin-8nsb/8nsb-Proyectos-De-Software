@@ -246,27 +246,25 @@ async function loadModule(moduleName) {
   UI.showSkeleton("#contentArea");
 
   try {
-    // Si el módulo ya está cargado en memoria
-    if (window.Modules && window.Modules[moduleName]) {
-      window.Modules[moduleName].init();
-    } else {
-      // Cargar el script del módulo de forma asíncrona
-      const script = document.createElement("script");
-      script.src = `./js/modules/${moduleName}.js`;
-      script.onerror = () => {
-        dom.contentArea.innerHTML = `
-          <div class="card" style="text-align: center; border-left: 4px solid var(--danger);">
-            <h3>Módulo en Desarrollo</h3>
-            <p>El módulo <strong>${moduleName}</strong> aún no está disponible.</p>
-          </div>`;
-      };
-      script.onload = () => {
-        if (window.Modules && window.Modules[moduleName]) {
-          window.Modules[moduleName].init();
-        }
-      };
-      document.body.appendChild(script);
-    }
+    // Limpiar versión anterior en memoria para evitar usar módulo desactualizado
+    if (window.Modules) delete window.Modules[moduleName];
+
+    // Cargar el script del módulo de forma asíncrona
+    const script = document.createElement("script");
+    script.src = `./js/modules/${moduleName}.js?v=${Date.now()}`;
+    script.onerror = () => {
+      dom.contentArea.innerHTML = `
+        <div class="card" style="text-align: center; border-left: 4px solid var(--danger);">
+          <h3>Módulo en Desarrollo</h3>
+          <p>El módulo <strong>${moduleName}</strong> aún no está disponible.</p>
+        </div>`;
+    };
+    script.onload = () => {
+      if (window.Modules && window.Modules[moduleName]) {
+        window.Modules[moduleName].init();
+      }
+    };
+    document.body.appendChild(script);
   } catch (error) {
     console.error(`Error loading module ${moduleName}:`, error);
     dom.contentArea.innerHTML = `<div class="card error">Error al cargar el módulo ${moduleName}</div>`;
