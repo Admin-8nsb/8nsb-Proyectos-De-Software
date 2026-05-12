@@ -469,6 +469,253 @@ window.Modules.reportes = {
     container.innerHTML = html;
   },
 
+  async loadProcedimientosView() {
+    this.currentView = 'procedimientos';
+    const contentArea = document.getElementById("contentArea");
+
+    // Hospital filter: quirofanos -> areas -> hospital (soportado por el PHP via hospital_id=UNI_ORG)
+    const hospitalOptions = this.hospitales.map(h =>
+      `<option value="${h.UNI_ORG}" ${this.selectedHospital === h.UNI_ORG ? 'selected' : ''}>${h.NOMUO}</option>`
+    ).join('');
+
+    contentArea.innerHTML = `
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+          <div>
+            <button class="btn btn-secondary" style="margin-bottom: 0.5rem;" onclick="Modules.reportes.showMenu()">← Volver al Menú</button>
+            <h2>🔪 Reporte de Cirugías y Partos</h2>
+          </div>
+          <button id="refreshProcedimientosBtn" class="btn btn-primary">🔄 Actualizar Datos</button>
+        </div>
+
+        <div style="background: var(--background); padding: 1rem; border-radius: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+
+          <div>
+            <label for="filterHospitalProc" style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Hospital:</label>
+            <select id="filterHospitalProc" class="form-group" style="margin-bottom: 0; width: 100%;">
+              <option value="">Todos los hospitales</option>
+              ${hospitalOptions}
+            </select>
+          </div>
+
+          <div>
+            <label for="filterQuirofanoProc" style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Quirófano:</label>
+            <select id="filterQuirofanoProc" class="form-group" style="margin-bottom: 0; width: 100%;">
+              <option value="">Todos los quirófanos</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="filterTipoAtencionProc" style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Tipo:</label>
+            <select id="filterTipoAtencionProc" class="form-group" style="margin-bottom: 0; width: 100%;">
+              <option value="">Todos (Partos y Cirugías)</option>
+              <option value="1">Partos</option>
+              <option value="2">Cirugías</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="filterTipoProcedimientoProc" style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Procedimiento:</label>
+            <select id="filterTipoProcedimientoProc" class="form-group" style="margin-bottom: 0; width: 100%;">
+              <option value="">Todos los procedimientos</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="filterFechaDesdeProc" style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Desde:</label>
+            <input type="date" id="filterFechaDesdeProc" class="form-group" style="margin-bottom: 0; width: 100%;" value="${this.selectedFechaDesde}" />
+          </div>
+
+          <div>
+            <label for="filterFechaHastaProc" style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Hasta:</label>
+            <input type="date" id="filterFechaHastaProc" class="form-group" style="margin-bottom: 0; width: 100%;" value="${this.selectedFechaHasta}" />
+          </div>
+
+        </div>
+      </div>
+
+      <div id="reportDataContainer">
+        <p style="text-align: center; color: var(--text-light); padding: 3rem;">Cargando datos del reporte...</p>
+      </div>
+    `;
+
+    document.getElementById("refreshProcedimientosBtn").addEventListener("click", () => this.fetchProcedimientosData());
+    document.getElementById("filterHospitalProc").addEventListener("change", (e) => {
+      this.selectedHospital = e.target.value;
+      this.loadQuirofanosProc();
+      this.fetchProcedimientosData();
+    });
+    document.getElementById("filterQuirofanoProc").addEventListener("change", () => this.fetchProcedimientosData());
+    document.getElementById("filterTipoAtencionProc").addEventListener("change", () => this.fetchProcedimientosData());
+    document.getElementById("filterTipoProcedimientoProc").addEventListener("change", () => this.fetchProcedimientosData());
+    document.getElementById("filterFechaDesdeProc").addEventListener("change", (e) => {
+      this.selectedFechaDesde = e.target.value;
+      this.fetchProcedimientosData();
+    });
+    document.getElementById("filterFechaHastaProc").addEventListener("change", (e) => {
+      this.selectedFechaHasta = e.target.value;
+      this.fetchProcedimientosData();
+    });
+
+    await this.loadQuirofanosProc();
+    await this.loadTiposProcedimientoProc();
+    this.fetchProcedimientosData();
+  },
+
+  async loadQuirofanosProc() {
+    try {
+    const hospitalId = this.selectedHospital || '';
+    const url = `../api/quirofanos/listar_quirofanos.php?hospital_id=${hospitalId}`;
+    const response = await fetch(url, { credentials: "include" });
+      const res = await response.json();
+
+      const select = document.getElementById("filterQuirofanoProc");
+      if (!select) return;
+
+      select.innerHTML = '<option value="">Todos los quirófanos</option>';
+      if (res.ok) {
+        res.data.forEach(q => {
+          select.innerHTML += `<option value="${q.ID}">${q.NOMBREQUIROFANO}</option>`;
+        });
+      }
+    } catch (error) {
+      console.error("Error al cargar quirófanos:", error);
+    }
+  },
+
+  async loadTiposProcedimientoProc() {
+    try {
+      const response = await fetch('../api/procquirugicos/listar_tipo_procedimiento.php', { credentials: "include" });
+      const res = await response.json();
+
+      const select = document.getElementById("filterTipoProcedimientoProc");
+      if (!select) return;
+
+      select.innerHTML = '<option value="">Todos los procedimientos</option>';
+      if (res.ok) {
+        res.data.forEach(t => {
+          select.innerHTML += `<option value="${t.ID}">${t.NOMBREPROCEDIMIENTO}</option>`;
+        });
+      }
+    } catch (error) {
+      console.error("Error al cargar tipos de procedimiento:", error);
+    }
+  },
+
+  async fetchProcedimientosData() {
+  const container = document.getElementById("reportDataContainer");
+  // 1. Obtener valores y normalizar: si es cadena vacía, dejar vacío para que no afecte la URL
+  const hospital    = this.selectedHospital || ''; 
+  const quirofano   = document.getElementById("filterQuirofanoProc")?.value || '';
+  const tipoAtencion = document.getElementById("filterTipoAtencionProc")?.value || '';
+  const tipoProcId  = document.getElementById("filterTipoProcedimientoProc")?.value || '';
+  const fechaDesde  = document.getElementById("filterFechaDesdeProc")?.value || '';
+  const fechaHasta  = document.getElementById("filterFechaHastaProc")?.value || '';
+
+  container.innerHTML = `<p style="text-align: center; color: var(--text-light); padding: 3rem;">Cargando datos...</p>`;
+
+  try {
+    // 2. Construir URL usando URLSearchParams para asegurar que los caracteres se escapen correctamente
+    const params = new URLSearchParams({
+      hospital_id: hospital,
+      quirofano_id: quirofano,
+      tipo_atencion: tipoAtencion,
+      tipo_procedimiento_id: tipoProcId,
+      fecha_desde: fechaDesde,
+      fecha_hasta: fechaHasta
+    });
+
+    const url = `../api/reportes/procedimientos_quirofano.php?${params.toString()}`;
+    const response = await fetch(url, { credentials: "include" });
+    const res = await response.json();
+
+    if (res.ok) {
+      this.renderProcedimientosStats(res.data);
+    } else {
+      UI.toast.show(res.message, "error");
+      container.innerHTML = `<p style="text-align: center; color: var(--danger); padding: 3rem;">${res.message}</p>`;
+    }
+  } catch (error) {
+    // ... error handling
+  }
+},
+
+  renderProcedimientosStats(data) {
+    const container = document.getElementById("reportDataContainer");
+
+    // El PHP devuelve: data.resumen { total, partos, cirugias } y data.detallado[]
+    // detallado: { FECHA, TIPO_ATENCION, NOMBREQUIROFANO, NOMBREPROCEDIMIENTO, total }
+    const { resumen, detallado } = data;
+
+    const tipoStyle = (tipo) => tipo === 'Partos'
+      ? { bg: '#fef9c3', color: '#a16207' }
+      : { bg: '#e0f2fe', color: '#0284c7' };
+
+    const rows = detallado.length > 0
+      ? detallado.map(r => {
+          const s = tipoStyle(r.TIPO_ATENCION);
+          return `
+            <tr>
+              <td>${new Date(r.FECHA).toLocaleDateString()}</td>
+              <td><strong>${r.NOMBREQUIROFANO}</strong></td>
+              <td>
+                <span class="badge" style="background:${s.bg}; color:${s.color};
+                  padding: 4px 12px; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">
+                  ${r.TIPO_ATENCION}
+                </span>
+              </td>
+              <td>${r.NOMBREPROCEDIMIENTO}</td>
+              <td style="text-align: center;">
+                <span class="badge" style="background: #ede9fe; color: #7c3aed;
+                  padding: 4px 12px; border-radius: 6px; font-weight: 700;">
+                  ${r.total}
+                </span>
+              </td>
+            </tr>
+          `;
+        }).join('')
+      : '<tr><td colspan="5" style="text-align: center; color: var(--text-light); padding: 2rem;">No hay registros con los filtros seleccionados</td></tr>';
+
+    container.innerHTML = `
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <div class="card" style="border-left: 4px solid var(--secondary);">
+          <h3 style="color: var(--text-light); font-size: 0.9rem; text-transform: uppercase;">Total</h3>
+          <div style="font-size: 2.5rem; font-weight: 700; color: var(--secondary); margin: 0.5rem 0;">${resumen.total}</div>
+        </div>
+
+        <div class="card" style="border-left: 4px solid #0284c7;">
+          <h3 style="color: var(--text-light); font-size: 0.9rem; text-transform: uppercase;">Cirugías</h3>
+          <div style="font-size: 2.5rem; font-weight: 700; color: #0284c7; margin: 0.5rem 0;">${resumen.cirugias}</div>
+        </div>
+
+        <div class="card" style="border-left: 4px solid #a16207;">
+          <h3 style="color: var(--text-light); font-size: 0.9rem; text-transform: uppercase;">Partos</h3>
+          <div style="font-size: 2.5rem; font-weight: 700; color: #a16207; margin: 0.5rem 0;">${resumen.partos}</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>📋 Detalle por Fecha, Quirófano y Procedimiento</h3>
+        <div class="table-container" style="margin-top: 1rem;">
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Quirófano</th>
+                <th>Tipo</th>
+                <th>Procedimiento</th>
+                <th style="text-align: center;">Cantidad</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  },
+
   animateValue(id, start, end, duration) {
     const obj = document.getElementById(id);
     if (!obj) return;
@@ -481,4 +728,4 @@ window.Modules.reportes = {
     };
     window.requestAnimationFrame(step);
   }
-};
+};  

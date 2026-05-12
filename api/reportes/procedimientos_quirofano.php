@@ -12,19 +12,16 @@ if ($_SERVER["REQUEST_METHOD"] !== "GET") {
 
 requireLogin();
 
-$hospitalId = $_GET["hospital_id"] ?? null;
-$quirofanoId = $_GET["quirofano_id"] ?? null;
-$tipoAtencion = $_GET["tipo_atencion"] ?? null;
-$tipoProcedimientoId = $_GET["tipo_procedimiento_id"] ?? null;
-$fechaDesde = $_GET["fecha_desde"] ?? null;
-$fechaHasta = $_GET["fecha_hasta"] ?? null;
+$hospitalId = !empty($_GET["hospital_id"]) ? $_GET["hospital_id"] : null;
+$quirofanoId = !empty($_GET["quirofano_id"]) ? $_GET["quirofano_id"] : null;
+$tipoAtencion = !empty($_GET["tipo_atencion"]) ? $_GET["tipo_atencion"] : null;
+$tipoProcedimientoId = !empty($_GET["tipo_procedimiento_id"]) ? $_GET["tipo_procedimiento_id"] : null;
+$fechaDesde = !empty($_GET["fecha_desde"]) ? $_GET["fecha_desde"] : null;
+$fechaHasta = !empty($_GET["fecha_hasta"]) ? $_GET["fecha_hasta"] : null;
 
-if ($hospitalId !== null && $hospitalId !== "" && !is_numeric($hospitalId)) {
-    jsonResponse(400, [
-        "ok" => false,
-        "message" => "El hospital debe ser numérico"
-    ]);
-}
+// if ($hospitalId !== null) {
+//     jsonResponse(400, ["ok" => false, "message" => "El hospital debe ser numérico"]);
+// }
 
 if ($quirofanoId !== null && $quirofanoId !== "" && !is_numeric($quirofanoId)) {
     jsonResponse(400, [
