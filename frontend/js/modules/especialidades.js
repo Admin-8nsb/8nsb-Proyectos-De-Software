@@ -101,10 +101,11 @@ window.Modules.especialidades = {
     
     const body = `
       <form id="especialidadForm">
+        ${isEdit ? `
         <div class="form-group">
           <label for="e_id">ID de la Especialidad</label>
-          <input type="number" id="e_id" value="${id || ''}" ${isEdit ? 'readonly' : ''} placeholder="Ej: 10" required>
-        </div>
+          <input type="number" id="e_id" value="${id}" readonly>
+        </div>` : ''}
         <div class="form-group">
           <label for="e_name">Nombre de la Especialidad</label>
           <input type="text" id="e_name" value="${name}" placeholder="Ej: Cardiología" required>
@@ -123,11 +124,15 @@ window.Modules.especialidades = {
   },
 
   async save(isEdit) {
-    const id = document.getElementById("e_id").value;
     const name = document.getElementById("e_name").value;
+    const data = { especialidad: name };
 
-    if (!id || !name) {
-      UI.toast.show("Todos los campos son obligatorios", "warning");
+    if (isEdit) {
+      data.id = document.getElementById("e_id").value;
+    }
+
+    if (!name) {
+      UI.toast.show("El nombre es obligatorio", "warning");
       return;
     }
 
@@ -137,7 +142,7 @@ window.Modules.especialidades = {
       const response = await fetch(`../api/especialidades/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: id, especialidad: name }),
+        body: JSON.stringify(data),
         credentials: "include"
       });
 

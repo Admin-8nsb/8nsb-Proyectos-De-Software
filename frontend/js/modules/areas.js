@@ -122,15 +122,14 @@ window.Modules.areas = {
 
     const body = `
       <form id="areaForm">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div class="form-group">
-            <label for="a_id">ID Área</label>
-            <input type="number" id="a_id" value="${item ? item.ID : ''}" ${isEdit ? 'readonly' : ''} required>
-          </div>
-          <div class="form-group">
-            <label for="a_id1">ID1 (Interno)</label>
-            <input type="number" id="a_id1" value="${item ? item.ID1 : ''}" required>
-          </div>
+        ${isEdit ? `
+        <div class="form-group">
+          <label for="a_id">ID Área</label>
+          <input type="number" id="a_id" value="${item.ID}" readonly>
+        </div>` : ''}
+        <div class="form-group">
+          <label for="a_id1">ID1 (Interno)</label>
+          <input type="number" id="a_id1" value="${item ? item.ID1 : ''}" required>
         </div>
         <div class="form-group">
           <label for="a_name">Nombre del Área</label>
@@ -162,15 +161,18 @@ window.Modules.areas = {
 
   async save(isEdit) {
     const data = {
-      id: document.getElementById("a_id").value,
       id1: document.getElementById("a_id1").value,
       nombreArea: document.getElementById("a_name").value,
       ubicacion: document.getElementById("a_ubicacion").value,
       hospitalUniOrg: document.getElementById("a_hospital").value
     };
 
-    if (!data.id || !data.nombreArea || !data.hospitalUniOrg) {
-      UI.toast.show("ID, Nombre y Hospital son obligatorios", "warning");
+    if (isEdit) {
+      data.id = document.getElementById("a_id").value;
+    }
+
+    if (!data.nombreArea || !data.hospitalUniOrg) {
+      UI.toast.show("Nombre y Hospital son obligatorios", "warning");
       return;
     }
 

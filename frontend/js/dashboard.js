@@ -112,6 +112,7 @@ const MODULES_CONFIG = [
     icon: '🥼',
     roles: ['Administrador', 'Recepcion', 'Medico']
   },
+  /*
   {
     id: 'quirofanos',
     label: 'Quirófanos',
@@ -124,6 +125,7 @@ const MODULES_CONFIG = [
     icon: '🔪',
     roles: ['Administrador', 'Quirofano']
   },
+  */
   {
     id: 'usuarios',
     label: 'Usuarios y Accesos',

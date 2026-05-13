@@ -413,71 +413,82 @@ aSelect.addEventListener("change", async () => {
     }
   },
 
-  showEgresoModal(item, isEditingEgres = false) {
-    const title = isEditingEgres ? "Editar Egreso" : "Registrar Egreso";
-    
-    let habOptions = this.habitaciones.map(h => 
-      `<option value="${h.ID}" ${item.HABITACIONES_ID == h.ID ? 'selected' : ''}>${h.NOMBREHABITACION}</option>`
-    ).join('');
+showEgresoModal(item, isEditingEgres = false) {
+  const title = isEditingEgres ? "Editar Egreso" : "Registrar Egreso";
+  
+  let habOptions = `
+    <option value="${item.HABITACIONES_ID}" selected>
+      ${item.NOMBREHABITACION || `Habitación #${item.HABITACIONES_ID}`}
+    </option>
+  `;
 
-    const body = `
-      <form id="egresoForm">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div class="form-group">
-            <label for="e_id">ID de Egreso</label>
-            <input type="number" id="e_id" value="${isEditingEgres ? item.ID : ''}" ${isEditingEgres ? 'readonly' : ''} required>
-          </div>
-          <div class="form-group">
-            <label for="e_ingreso_id">ID de Ingreso</label>
-            <input type="number" id="e_ingreso_id" value="${isEditingEgres ? item.INGRESOS_ID : item.ID}" readonly required>
-          </div>
-        </div>
-
+  const body = `
+    <form id="egresoForm">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        ${isEditingEgres ? `
         <div class="form-group">
-          <label for="e_habitacion">Habitación</label>
-          <select id="e_habitacion" required readonly>
-            ${habOptions}
-          </select>
+          <label for="e_id">ID de Egreso</label>
+          <input type="number" id="e_id" value="${item.ID}" readonly>
+        </div>` : ''}
+        <div class="form-group" ${!isEditingEgres ? 'style="grid-column: span 2;"' : ''}>
+          <label for="e_ingreso_id">ID de Ingreso</label>
+          <input type="number" id="e_ingreso_id" value="${isEditingEgres ? item.INGRESOS_ID : item.ID}" readonly required>
         </div>
+      </div>
 
-        <div class="form-group">
-          <label for="e_tipo">Tipo (Numérico)</label>
-          <input type="number" id="e_tipo" value="${item ? item.TIPO : ''}">
-        </div>
+      <div class="form-group">
+        <label for="e_habitacion">Habitación</label>
+        <select id="e_habitacion" required style="pointer-events: none; background: #f3f4f6;">
+          ${habOptions}
+        </select>
+      </div>
 
-        <div class="form-group">
-          <label for="e_fecha">Fecha de Egreso</label>
-          <input type="datetime-local" id="e_fecha" value="${isEditingEgres ? item.FECHAEGRESO.replace(' ', 'T') : new Date().toISOString().slice(0, 16)}">
-        </div>
+      <div class="form-group">
+        <label for="e_tipo">Tipo (Numérico)</label>
+        <input type="number" id="e_tipo" value="${item ? item.TIPO : ''}">
+      </div>
 
-        <div class="form-group">
-          <label for="e_obs">Observaciones</label>
-          <textarea id="e_obs" rows="3">${item ? item.OBSERVACIONES : ''}</textarea>
-        </div>
-      </form>
-    `;
+      <div class="form-group">
+        <label for="e_fecha">Fecha de Egreso</label>
+        <input type="datetime-local" id="e_fecha" value="${isEditingEgres ? item.FECHAEGRESO.replace(' ', 'T') : new Date().toISOString().slice(0, 16)}">
+      </div>
 
-    const footer = `
-      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-      <button class="btn btn-primary" id="saveEgresoBtn">Guardar Egreso</button>
-    `;
+      <div class="form-group">
+        <label for="e_obs">Observaciones</label>
+        <textarea id="e_obs" rows="3">${item ? item.OBSERVACIONES : ''}</textarea>
+      </div>
+    </form>
+  `;
 
-    UI.modal.show(title, body, footer);
-    document.getElementById("saveEgresoBtn").addEventListener("click", () => this.saveEgreso(isEditingEgres));
-  },
+  const footer = `
+    <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+    <button class="btn btn-primary" id="saveEgresoBtn">Guardar Egreso</button>
+  `;
+
+  UI.modal.show(title, body, footer);
+  document.getElementById("saveEgresoBtn").addEventListener("click", () => this.saveEgreso(isEditingEgres));
+},
 
   async saveEgreso(isEdit) {
     const data = {
-      id: document.getElementById("e_id").value,
       ingresosId: document.getElementById("e_ingreso_id").value,
-      habitacionesId: document.getElementById("e_habitacion").value,
+      habitacionesId: document.getElementById("e_habitacion").value || document.querySelector("#e_habitacion option")?.value,
       tipo: document.getElementById("e_tipo").value,
       fechaEgreso: document.getElementById("e_fecha").value.replace('T', ' '),
       observaciones: document.getElementById("e_obs").value
     };
 
-    if (!data.id || !data.ingresosId || !data.habitacionesId) {
-      UI.toast.show("ID de egreso y habitación son obligatorios", "warning");
+    if (isEdit) {
+      data.id = document.getElementById("e_id").value;
+    }
+
+    if (!data.ingresosId || !data.habitacionesId) {
+      UI.toast.show("Ingreso y habitación son obligatorios", "warning");
+      return;
+    }
+
+    if (isEdit && !data.id) {
+      UI.toast.show("ID de egreso es obligatorio para editar", "warning");
       return;
     }
 

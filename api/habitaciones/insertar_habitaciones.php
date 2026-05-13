@@ -68,12 +68,18 @@ try {
         ]);
     }
 
+    $sqlNextId = "SELECT COALESCE(MAX(ID), 0) + 1 AS nextId FROM HABITACIONES";
+    $stmtNextId = $conn->query($sqlNextId);
+    $nextId = $stmtNextId->fetch()["nextId"];
+
     $sql = "INSERT INTO HABITACIONES (
+                ID,
                 NOMBREHABITACION,
                 UBICACION,
                 EQUIPAMIENTO,
                 AREAS_ID
             ) VALUES (
+                :id,
                 :nombreHabitacion,
                 :ubicacion,
                 :equipamiento,
@@ -82,6 +88,7 @@ try {
 
     $stmt = $conn->prepare($sql);
     $stmt->execute([
+        ":id" => $nextId,
         ":nombreHabitacion" => $nombreHabitacion,
         ":ubicacion" => ($ubicacion === "" ? null : $ubicacion),
         ":equipamiento" => ($equipamiento === "" ? null : $equipamiento),

@@ -9,22 +9,33 @@ hospitales: [],
 areas: [],
 
   async init() {
-  this.renderLayout();
-
-  await Promise.all([
-    this.loadHospitales()
-  ]);
-
-  await this.loadData();
-},
+    await this.loadHospitales();
+    this.renderLayout();
+    await this.loadData();
+  },
 
   renderLayout() {
     const contentArea = document.getElementById("contentArea");
+    
+    let hospitalOptions = this.hospitales.map(h => 
+      `<option value="${h.UNI_ORG}">${h.NOMUO}</option>`
+    ).join('');
+
     contentArea.innerHTML = `
-      <div class="card" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
-        <div style="flex: 1; max-width: 400px;">
-          <input type="text" id="habitacionesSearch" class="form-group" style="margin-bottom: 0; width: 100%;" placeholder="🔍 Buscar habitación por nombre o área...">
+      <div class="card" style="margin-bottom: 1rem; display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 250px;">
+          <label style="font-size: 0.8rem; font-weight: 600; margin-bottom: 0.25rem; display: block;">Buscar</label>
+          <input type="text" id="habitacionesSearch" class="form-group" style="margin-bottom: 0; width: 100%;" placeholder="🔍 Nombre, ID, Área...">
         </div>
+        
+        <div style="width: 200px;">
+          <label style="font-size: 0.8rem; font-weight: 600; margin-bottom: 0.25rem; display: block;">Filtrar por Hospital</label>
+          <select id="hospitalFilter" class="form-group" style="margin-bottom: 0; width: 100%;">
+            <option value="">Todos los hospitales</option>
+            ${hospitalOptions}
+          </select>
+        </div>
+
         <button id="addHabitacionBtn" class="btn btn-primary">
           <span>+</span> Registrar Habitación
         </button>
@@ -35,7 +46,8 @@ areas: [],
       </div>
     `;
 
-    document.getElementById("habitacionesSearch").addEventListener("input", (e) => this.filter(e.target.value));
+    document.getElementById("habitacionesSearch").addEventListener("input", () => this.filter());
+    document.getElementById("hospitalFilter").addEventListener("change", () => this.filter());
     document.getElementById("addHabitacionBtn").addEventListener("click", () => this.showModal());
   },
 async loadHospitales() {
@@ -134,14 +146,21 @@ async loadAreasPorHospital(hospitalId) {
     container.innerHTML = html;
   },
 
-  filter(query) {
-    const q = query.toLowerCase();
-    this.filteredData = this.data.filter(item => 
-      item.NOMBREHABITACION.toLowerCase().includes(q) || 
-      item.ID.toString().includes(q) ||
-      item.NOMBREAREA.toLowerCase().includes(q) ||
-      (item.UBICACION && item.UBICACION.toLowerCase().includes(q))
-    );
+  filter() {
+    const q = document.getElementById("habitacionesSearch").value.toLowerCase();
+    const h = document.getElementById("hospitalFilter").value;
+
+    this.filteredData = this.data.filter(item => {
+      const matchesSearch = 
+        item.NOMBREHABITACION.toLowerCase().includes(q) || 
+        item.ID.toString().includes(q) ||
+        item.NOMBREAREA.toLowerCase().includes(q) ||
+        (item.UBICACION && item.UBICACION.toLowerCase().includes(q));
+      
+      const matchesHospital = h === "" || item.HOSPITAL_UNI_ORG === h;
+
+      return matchesSearch && matchesHospital;
+    });
     this.renderTable();
   },
 
@@ -155,16 +174,15 @@ async loadAreasPorHospital(hospitalId) {
 
   const body = `
     <form id="habitacionForm">
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-        <div class="form-group">
-          <label for="h_id">ID Habitación</label>
-          <input type="number" id="h_id" value="${item ? item.ID : ''}" ${isEdit ? 'readonly' : ''} placeholder="Ej: 101" required>
-        </div>
+      ${isEdit ? `
+      <div class="form-group">
+        <label for="h_id">ID Habitación</label>
+        <input type="number" id="h_id" value="${item.ID}" readonly>
+      </div>` : ''}
 
-        <div class="form-group">
-          <label for="h_nombre">Nombre/N° Habitación</label>
-          <input type="text" id="h_nombre" value="${item ? item.NOMBREHABITACION : ''}" placeholder="Ej: Habitación 101" required>
-        </div>
+      <div class="form-group">
+        <label for="h_nombre">Nombre/N° Habitación</label>
+        <input type="text" id="h_nombre" value="${item ? item.NOMBREHABITACION : ''}" placeholder="Ej: Habitación 101" required>
       </div>
 
       <div class="form-group">
@@ -231,15 +249,18 @@ async loadAreasPorHospital(hospitalId) {
 
   async save(isEdit) {
     const data = {
-      id: document.getElementById("h_id").value,
       nombreHabitacion: document.getElementById("h_nombre").value.trim(),
       areasId: document.getElementById("h_area").value,
       ubicacion: document.getElementById("h_ubicacion").value.trim(),
       equipamiento: document.getElementById("h_equipamiento").value.trim()
     };
 
-    if (!data.id || !data.nombreHabitacion || !data.areasId) {
-      UI.toast.show("ID, nombre y área son obligatorios", "warning");
+    if (isEdit) {
+      data.id = document.getElementById("h_id").value;
+    }
+
+    if (!data.nombreHabitacion || !data.areasId) {
+      UI.toast.show("Nombre y área son obligatorios", "warning");
       return;
     }
 

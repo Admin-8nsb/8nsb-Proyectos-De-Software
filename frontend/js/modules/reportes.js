@@ -66,14 +66,14 @@ window.Modules.reportes = {
         </div>
 
         <!-- REPORTE 1: Medicina General -->
-        <div class="card report-card" style="opacity: 0.7; border-top: 4px solid var(--secondary); background: #fcfcfc;">
+        <div class="card report-card" style="cursor: pointer; transition: var(--transition); border-top: 4px solid #3b82f6;" onclick="Modules.reportes.loadMedicinaGeneralView()">
           <div style="font-size: 2rem; margin-bottom: 1rem;">🩺</div>
           <h3>Consultas Medicina General</h3>
           <p style="font-size: 0.875rem; color: var(--text-light); margin-top: 0.5rem;">
             Número de consultas de medicina general o familiar por médico en consultorio.
           </p>
-          <div style="margin-top: 1.5rem; color: var(--text-light); font-weight: 600; font-size: 0.85rem;">
-            ⏳ Próximamente
+          <div style="margin-top: 1.5rem; color: #3b82f6; font-weight: 600; font-size: 0.85rem;">
+            Ver reporte →
           </div>
         </div>
 
@@ -102,19 +102,19 @@ window.Modules.reportes = {
         </div>
 
         <!-- REPORTE 4: Ingresos/Egresos Hospitalarios -->
-        <div class="card report-card" style="opacity: 0.7; border-top: 4px solid var(--secondary); background: #fcfcfc;">
+        <div class="card report-card" style="cursor: pointer; transition: var(--transition); border-top: 4px solid #f59e0b;" onclick="Modules.reportes.loadIngresosEgresosHospView()">
           <div style="font-size: 2rem; margin-bottom: 1rem;">🚪</div>
           <h3>Ingresos y Egresos Hosp.</h3>
           <p style="font-size: 0.875rem; color: var(--text-light); margin-top: 0.5rem;">
             Número de ingresos y egresos incluyendo piso general y servicios (UCI, UCIN, etc).
           </p>
-          <div style="margin-top: 1.5rem; color: var(--text-light); font-weight: 600; font-size: 0.85rem;">
-            ⏳ Próximamente
+          <div style="margin-top: 1.5rem; color: #f59e0b; font-weight: 600; font-size: 0.85rem;">
+            Ver reporte →
           </div>
         </div>
 
         <!-- REPORTE 5: Quirófanos -->
-        <div class="card report-card" style="cursor: pointer; transition: var(--transition); border-top: 4px solid var(--secondary);" onclick="Modules.reportes.loadProcedimientosView()">
+        <div class="card report-card" style="cursor: pointer; transition: var(--transition); border-top: 4px solid var(--primary);" onclick="Modules.reportes.loadProcedimientosView()">
           <div style="font-size: 2rem; margin-bottom: 1rem;">🔪</div>
           <h3>Partos y Cirugías</h3>
           <p style="font-size: 0.875rem; color: var(--text-light); margin-top: 0.5rem;">
@@ -140,6 +140,325 @@ window.Modules.reportes = {
     this.renderViewWithFilter('🧪 Reporte de Estudios Paraclínicos', 'refreshEstudiosBtn');
     document.getElementById("refreshEstudiosBtn").addEventListener("click", () => this.fetchEstudiosData());
     this.fetchEstudiosData();
+  },
+
+  async loadMedicinaGeneralView() {
+    this.currentView = 'medicina_general';
+    const contentArea = document.getElementById("contentArea");
+
+    const hospitalOptions = this.hospitales.map(h =>
+      `<option value="${h.UNI_ORG}" ${this.selectedHospital === h.UNI_ORG ? 'selected' : ''}>${h.NOMUO}</option>`
+    ).join('');
+
+    contentArea.innerHTML = `
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+          <div>
+            <button class="btn btn-secondary" style="margin-bottom: 0.5rem;" onclick="Modules.reportes.showMenu()">← Volver al Menú</button>
+            <h2>🩺 Reporte de Medicina General / Familiar</h2>
+          </div>
+          <button id="refreshMedGenBtn" class="btn btn-primary">🔄 Actualizar Datos</button>
+        </div>
+
+        <div style="background: var(--background); padding: 1rem; border-radius: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+          <div>
+            <label for="filterHospitalMed" style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Hospital:</label>
+            <select id="filterHospitalMed" class="form-group" style="margin-bottom: 0; width: 100%;">
+              <option value="">Todos los hospitales</option>
+              ${hospitalOptions}
+            </select>
+          </div>
+
+          <div>
+            <label for="filterFechaDesdeMed" style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Desde:</label>
+            <input type="date" id="filterFechaDesdeMed" class="form-group" style="margin-bottom: 0; width: 100%;" value="${this.selectedFechaDesde}" />
+          </div>
+
+          <div>
+            <label for="filterFechaHastaMed" style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Hasta:</label>
+            <input type="date" id="filterFechaHastaMed" class="form-group" style="margin-bottom: 0; width: 100%;" value="${this.selectedFechaHasta}" />
+          </div>
+        </div>
+      </div>
+
+      <div id="reportDataContainer">
+        <p style="text-align: center; color: var(--text-light); padding: 3rem;">Cargando datos...</p>
+      </div>
+    `;
+
+    document.getElementById("refreshMedGenBtn").addEventListener("click", () => this.fetchMedicinaGeneralData());
+    document.getElementById("filterHospitalMed").addEventListener("change", (e) => {
+      this.selectedHospital = e.target.value;
+      this.fetchMedicinaGeneralData();
+    });
+    document.getElementById("filterFechaDesdeMed").addEventListener("change", (e) => {
+      this.selectedFechaDesde = e.target.value;
+      this.fetchMedicinaGeneralData();
+    });
+    document.getElementById("filterFechaHastaMed").addEventListener("change", (e) => {
+      this.selectedFechaHasta = e.target.value;
+      this.fetchMedicinaGeneralData();
+    });
+
+    this.fetchMedicinaGeneralData();
+  },
+
+  async fetchMedicinaGeneralData() {
+    const container = document.getElementById("reportDataContainer");
+    const hospital = this.selectedHospital || '';
+    const fechaDesde = this.selectedFechaDesde || '';
+    const fechaHasta = this.selectedFechaHasta || '';
+
+    container.innerHTML = `<p style="text-align: center; color: var(--text-light); padding: 3rem;">Cargando datos...</p>`;
+
+    try {
+      const params = new URLSearchParams({
+        hospital_id: hospital,
+        fecha_desde: fechaDesde,
+        fecha_hasta: fechaHasta
+      });
+
+      const url = `../api/reportes/medicina_general.php?${params.toString()}`;
+      const response = await fetch(url, { credentials: "include" });
+      const res = await response.json();
+
+      if (res.ok) {
+        this.renderMedicinaGeneralStats(res.data);
+      } else {
+        UI.toast.show(res.message, "error");
+        container.innerHTML = `<p style="text-align: center; color: var(--danger); padding: 3rem;">${res.message}</p>`;
+      }
+    } catch (error) {
+      UI.toast.show("Error al cargar datos del reporte", "error");
+      container.innerHTML = `<p style="text-align: center; color: var(--danger); padding: 3rem;">Ocurrió un error de conexión con la base de datos.</p>`;
+    }
+  },
+
+  renderMedicinaGeneralStats(data) {
+    const container = document.getElementById("reportDataContainer");
+    const { resumen, registros, total } = data;
+
+    let resumenHtml = resumen.map(r => `
+      <div class="card" style="background: var(--background); border: none; border-left: 4px solid #3b82f6;">
+        <h4 style="color: var(--text-light); font-size: 0.8rem; text-transform: uppercase;">Dr. ${r.NOMBRE} ${r.APELLIDOPATERNO}</h4>
+        <div style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 0.5rem;">${r.CONSULTORIO}</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: #3b82f6;">${r.total_consultas} <span style="font-size: 0.9rem; font-weight: 400; color: var(--text-light);">consultas</span></div>
+      </div>
+    `).join('');
+
+    if (resumen.length === 0) {
+      resumenHtml = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-light);">No hay consultas registradas para los filtros seleccionados.</p>';
+    }
+
+    let rows = registros.map(r => `
+      <tr>
+        <td>${new Date(r.FECHACONSULTA).toLocaleString()}</td>
+        <td>Dr. ${r.MEDICO_NOMBRE} ${r.MEDICO_PATERNO}</td>
+        <td>${r.NOMBRECONSULTORIO}</td>
+        <td><span class="badge" style="background: #e0f2fe; color: #0284c7; padding: 4px 12px; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">${r.TIPOCONSULTA}</span></td>
+      </tr>
+    `).join('');
+
+    if (registros.length === 0) {
+      rows = '<tr><td colspan="4" style="text-align: center; color: var(--text-light); padding: 2rem;">No hay registros detallados</td></tr>';
+    }
+
+    container.innerHTML = `
+      <div class="card" style="border-left: 4px solid var(--secondary); margin-bottom: 1.5rem;">
+        <h3 style="color: var(--text-light); font-size: 0.9rem; text-transform: uppercase;">Total de Consultas Medicina General</h3>
+        <div style="font-size: 2.5rem; font-weight: 700; color: var(--secondary); margin: 0.5rem 0;">${total}</div>
+      </div>
+
+      <h3 style="margin-bottom: 1rem;">👨‍⚕️ Resumen por Médico y Consultorio</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        ${resumenHtml}
+      </div>
+
+      <div class="card">
+        <h3>📋 Detalle de Consultas Individuales</h3>
+        <div class="table-container" style="margin-top: 1rem;">
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Médico</th>
+                <th>Consultorio</th>
+                <th>Tipo Atención</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  },
+
+  async loadIngresosEgresosHospView() {
+    this.currentView = 'ingresos_egresos_hosp';
+    const contentArea = document.getElementById("contentArea");
+
+    const hospitalOptions = this.hospitales.map(h =>
+      `<option value="${h.UNI_ORG}" ${this.selectedHospital === h.UNI_ORG ? 'selected' : ''}>${h.NOMUO}</option>`
+    ).join('');
+
+    contentArea.innerHTML = `
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+          <div>
+            <button class="btn btn-secondary" style="margin-bottom: 0.5rem;" onclick="Modules.reportes.showMenu()">← Volver al Menú</button>
+            <h2>🚪 Reporte de Ingresos y Egresos Hospitalarios</h2>
+          </div>
+          <button id="refreshHospBtn" class="btn btn-primary">🔄 Actualizar Datos</button>
+        </div>
+
+        <div style="background: var(--background); padding: 1rem; border-radius: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+          <div>
+            <label for="filterHospitalHosp" style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Hospital:</label>
+            <select id="filterHospitalHosp" class="form-group" style="margin-bottom: 0; width: 100%;">
+              <option value="">Todos los hospitales</option>
+              ${hospitalOptions}
+            </select>
+          </div>
+
+          <div>
+            <label for="filterFechaDesdeHosp" style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Desde:</label>
+            <input type="date" id="filterFechaDesdeHosp" class="form-group" style="margin-bottom: 0; width: 100%;" value="${this.selectedFechaDesde}" />
+          </div>
+
+          <div>
+            <label for="filterFechaHastaHosp" style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Hasta:</label>
+            <input type="date" id="filterFechaHastaHosp" class="form-group" style="margin-bottom: 0; width: 100%;" value="${this.selectedFechaHasta}" />
+          </div>
+        </div>
+      </div>
+
+      <div id="reportDataContainer">
+        <p style="text-align: center; color: var(--text-light); padding: 3rem;">Cargando datos...</p>
+      </div>
+    `;
+
+    document.getElementById("refreshHospBtn").addEventListener("click", () => this.fetchIngresosEgresosHospData());
+    document.getElementById("filterHospitalHosp").addEventListener("change", (e) => {
+      this.selectedHospital = e.target.value;
+      this.fetchIngresosEgresosHospData();
+    });
+    document.getElementById("filterFechaDesdeHosp").addEventListener("change", (e) => {
+      this.selectedFechaDesde = e.target.value;
+      this.fetchIngresosEgresosHospData();
+    });
+    document.getElementById("filterFechaHastaHosp").addEventListener("change", (e) => {
+      this.selectedFechaHasta = e.target.value;
+      this.fetchIngresosEgresosHospData();
+    });
+
+    this.fetchIngresosEgresosHospData();
+  },
+
+  async fetchIngresosEgresosHospData() {
+    const container = document.getElementById("reportDataContainer");
+    const hospital = this.selectedHospital || '';
+    const fechaDesde = this.selectedFechaDesde || '';
+    const fechaHasta = this.selectedFechaHasta || '';
+
+    container.innerHTML = `<p style="text-align: center; color: var(--text-light); padding: 3rem;">Cargando datos...</p>`;
+
+    try {
+      const params = new URLSearchParams({
+        hospital_id: hospital,
+        fecha_desde: fechaDesde,
+        fecha_hasta: fechaHasta
+      });
+
+      const url = `../api/reportes/ingresos_egresos_hospital.php?${params.toString()}`;
+      const response = await fetch(url, { credentials: "include" });
+      const res = await response.json();
+
+      if (res.ok) {
+        this.renderIngresosEgresosHospStats(res.data);
+      } else {
+        UI.toast.show(res.message, "error");
+        container.innerHTML = `<p style="text-align: center; color: var(--danger); padding: 3rem;">${res.message}</p>`;
+      }
+    } catch (error) {
+      UI.toast.show("Error al cargar datos del reporte", "error");
+      container.innerHTML = `<p style="text-align: center; color: var(--danger); padding: 3rem;">Ocurrió un error de conexión con la base de datos.</p>`;
+    }
+  },
+
+  renderIngresosEgresosHospStats(data) {
+    const container = document.getElementById("reportDataContainer");
+    const { ingresos_por_area, egresos_por_area, registros } = data;
+
+    let resumenIngresosHtml = ingresos_por_area.map(r => `
+      <div class="card" style="background: var(--background); border: none; border-left: 4px solid var(--primary);">
+        <h4 style="color: var(--text-light); font-size: 0.8rem; text-transform: uppercase;">${r.NOMBREAREA}</h4>
+        <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">${r.total_ingresos} <span style="font-size: 0.9rem; font-weight: 400; color: var(--text-light);">ingresos</span></div>
+      </div>
+    `).join('');
+
+    let resumenEgresosHtml = egresos_por_area.map(r => `
+      <div class="card" style="background: var(--background); border: none; border-left: 4px solid var(--danger);">
+        <h4 style="color: var(--text-light); font-size: 0.8rem; text-transform: uppercase;">${r.NOMBREAREA}</h4>
+        <div style="font-size: 1.5rem; font-weight: 700; color: var(--danger);">${r.total_egresos} <span style="font-size: 0.9rem; font-weight: 400; color: var(--text-light);">egresos</span></div>
+      </div>
+    `).join('');
+
+    let rows = registros.map(r => {
+      const badge = r.TIPO_MOV === 'Ingreso' 
+        ? '<span style="color: var(--primary); background: #eff6ff; padding: 4px 12px; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">Ingreso</span>'
+        : '<span style="color: var(--danger); background: #fef2f2; padding: 4px 12px; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">Egreso</span>';
+      
+      return `
+        <tr>
+          <td>${badge}</td>
+          <td>${new Date(r.FECHA).toLocaleString()}</td>
+          <td>${r.NOMBREAREA}</td>
+          <td><strong>${r.NOMBREHABITACION}</strong></td>
+        </tr>
+      `;
+    }).join('');
+
+    if (registros.length === 0) {
+      rows = '<tr><td colspan="4" style="text-align: center; color: var(--text-light); padding: 2rem;">No hay movimientos registrados</td></tr>';
+    }
+
+    container.innerHTML = `
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+        <div>
+          <h3 style="margin-bottom: 1rem;">📈 Ingresos por Área</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            ${resumenIngresosHtml || '<p style="color: var(--text-light);">Sin ingresos registrados.</p>'}
+          </div>
+        </div>
+        <div>
+          <h3 style="margin-bottom: 1rem;">📉 Egresos por Área</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            ${resumenEgresosHtml || '<p style="color: var(--text-light);">Sin egresos registrados.</p>'}
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>📋 Historial de Movimientos</h3>
+        <div class="table-container" style="margin-top: 1rem;">
+          <table>
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Fecha</th>
+                <th>Área / Servicio</th>
+                <th>Habitación</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
   },
 
   async loadOtrosConsultoriosView() {

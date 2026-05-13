@@ -19,7 +19,7 @@ $especialidad = trim($input["especialidad"] ?? "");
 if ($especialidad === "") {
     jsonResponse(400, [
         "ok" => false,
-        "message" => "La especialidad es obligatoria"
+        "message" => "El nombre de la especialidad es obligatorio"
     ]);
 }
 
@@ -31,6 +31,7 @@ try {
                        FROM ESPECIALIDADES
                        WHERE UPPER(TRIM(ESPECIALIDAD)) = UPPER(TRIM(:especialidad))
                        LIMIT 1";
+
     $stmtCheckNombre = $conn->prepare($sqlCheckNombre);
     $stmtCheckNombre->execute([
         ":especialidad" => $especialidad
@@ -43,11 +44,21 @@ try {
         ]);
     }
 
-    $sql = "INSERT INTO ESPECIALIDADES (ESPECIALIDAD)
-            VALUES (:especialidad)";
+    $sqlNextId = "SELECT COALESCE(MAX(ID), 0) + 1 AS nextId FROM ESPECIALIDADES";
+    $stmtNextId = $conn->query($sqlNextId);
+    $nextId = $stmtNextId->fetch()["nextId"];
+
+    $sql = "INSERT INTO ESPECIALIDADES (
+                ID,
+                ESPECIALIDAD
+            ) VALUES (
+                :id,
+                :especialidad
+            )";
 
     $stmt = $conn->prepare($sql);
     $stmt->execute([
+        ":id" => $nextId,
         ":especialidad" => $especialidad
     ]);
 
@@ -55,6 +66,7 @@ try {
         "ok" => true,
         "message" => "Especialidad insertada correctamente"
     ]);
+
 } catch (Throwable $e) {
     jsonResponse(500, [
         "ok" => false,
