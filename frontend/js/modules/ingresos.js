@@ -12,19 +12,16 @@ window.Modules.ingresos = {
   areas: [],
   habitaciones: [],
   activeTab: 'ingresos',
-
-  async init() {
+async init() {
   this.renderLayout();
 
   await Promise.all([
     this.loadMedicos(),
-    this.loadHospitales(),
-    this.loadHabitaciones()
+    this.loadHospitales()
   ]);
 
   await this.loadData();
 },
-
   renderLayout() {
     const contentArea = document.getElementById("contentArea");
     contentArea.innerHTML = `
@@ -121,26 +118,29 @@ async loadHospitales() {
     }
   },
 
-  async loadHabitacionesPorArea(areaId) {
-    try {
-      const response = await fetch(`../api/habitaciones/listar_por_area.php?area_id=${areaId}`, { credentials: "include" });
-      const res = await response.json();
-      return res.ok ? res.data : [];
-    } catch (error) {
-      console.error("Error al cargar habitaciones:", error);
-      return [];
-    }
-  },
+async loadHabitacionesPorArea(areaId) {
+  try {
+    const response = await fetch(`../api/habitaciones/listar_habitaciones.php?area_id=${areaId}`, { 
+      credentials: "include" 
+    });
 
-  async loadHabitaciones() {
-    try {
-      const response = await fetch("../api/habitaciones/listar_habitaciones.php", { credentials: "include" });
-      const res = await response.json();
-      if (res.ok) this.habitaciones = res.data;
-    } catch (error) {
-      console.error("Error al cargar habitaciones:", error);
-    }
-  },
+    const res = await response.json();
+    return res.ok ? res.data : [];
+  } catch (error) {
+    console.error("Error al cargar habitaciones:", error);
+    return [];
+  }
+},
+
+async loadHabitaciones() {
+  try {
+    const response = await fetch("../api/habitaciones/listar_habitaciones.php", { credentials: "include" });
+    const res = await response.json();
+    if (res.ok) this.habitaciones = res.data;
+  } catch (error) {
+    console.error("Error al cargar habitaciones:", error);
+  }
+},
 
   async loadData() {
     try {

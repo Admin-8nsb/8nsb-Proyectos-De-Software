@@ -14,10 +14,7 @@ window.Modules.reportes = {
   selectedTipoProcedimiento: '',
   selectedFechaDesde: '',
   selectedFechaHasta: '',
-<<<<<<< HEAD
   selectedEspecialidad: '',
-=======
->>>>>>> 7632ec7ab761cb0c642060144bfa48dc6cee148f
 
   async init() {
     await this.loadHospitales();
@@ -81,23 +78,14 @@ window.Modules.reportes = {
         </div>
 
         <!-- REPORTE 2: Especialistas -->
-<<<<<<< HEAD
         <div class="card report-card" style="cursor: pointer; transition: var(--transition); border-top: 4px solid #10b981;" onclick="Modules.reportes.loadConsultasEspecialistasView()">
-=======
-        <div class="card report-card" style="opacity: 0.7; border-top: 4px solid var(--secondary); background: #fcfcfc;">
->>>>>>> 7632ec7ab761cb0c642060144bfa48dc6cee148f
           <div style="font-size: 2rem; margin-bottom: 1rem;">👨‍⚕️</div>
           <h3>Consultas de Especialistas</h3>
           <p style="font-size: 0.875rem; color: var(--text-light); margin-top: 0.5rem;">
             Número de consultas de médicos especialistas por especialidad y consultorio.
           </p>
-<<<<<<< HEAD
           <div style="margin-top: 1.5rem; color: #10b981; font-weight: 600; font-size: 0.85rem;">
             Ver reporte →
-=======
-          <div style="margin-top: 1.5rem; color: var(--text-light); font-weight: 600; font-size: 0.85rem;">
-            ⏳ Próximamente
->>>>>>> 7632ec7ab761cb0c642060144bfa48dc6cee148f
           </div>
         </div>
 
@@ -157,7 +145,7 @@ window.Modules.reportes = {
   async loadOtrosConsultoriosView() {
     this.currentView = 'otros_consultorios';
     const contentArea = document.getElementById("contentArea");
-    
+
     contentArea.innerHTML = `
       <div class="card" style="margin-bottom: 1.5rem;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
@@ -169,7 +157,7 @@ window.Modules.reportes = {
         </div>
 
         <div style="background: var(--background); padding: 1rem; border-radius: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-          
+
           <div>
             <label for="filterServicio" style="font-weight: 600; font-size: 0.9rem; display:block; margin-bottom:0.5rem;">Tipo de Servicio:</label>
             <select id="filterServicio" class="form-group" style="margin-bottom: 0; width: 100%;">
@@ -212,10 +200,9 @@ window.Modules.reportes = {
 
   async loadCatalogosOtrosConsultorios() {
     try {
-      // Cargar tipos de servicio dinámicamente
       const resServicios = await fetch("../api/tipos_servicios/listar_tipos_servicios.php?exclude_id=1", { credentials: "include" });
       const dataServicios = await resServicios.json();
-      
+
       if (dataServicios.ok) {
         const filterServicio = document.getElementById("filterServicio");
         dataServicios.data.forEach(ts => {
@@ -223,7 +210,6 @@ window.Modules.reportes = {
         });
       }
 
-      // Cargar consultorios físicos dinámicamente
       const resConsultorios = await fetch("../api/consultorios/listar_consultorios.php", { credentials: "include" });
       const dataConsultorios = await resConsultorios.json();
 
@@ -244,9 +230,9 @@ window.Modules.reportes = {
     const srv = document.getElementById("filterServicio").value;
     const cons = document.getElementById("filterConsultorio").value;
     const aten = document.getElementById("filterAtencion").value;
-    
+
     container.innerHTML = `<p style="text-align: center; color: var(--text-light); padding: 3rem;">Cargando datos...</p>`;
-    
+
     try {
       const url = `../api/reportes/otros_consultorios.php?hospital_id=${this.selectedHospital}&servicio_id=${srv}&consultorio_id=${cons}&atencion=${aten}`;
       const response = await fetch(url, { credentials: "include" });
@@ -302,7 +288,7 @@ window.Modules.reportes = {
 
   renderViewWithFilter(title, btnId) {
     const contentArea = document.getElementById("contentArea");
-    let hospitalOptions = this.hospitales.map(h => 
+    let hospitalOptions = this.hospitales.map(h =>
       `<option value="${h.UNI_ORG}" ${this.selectedHospital === h.UNI_ORG ? 'selected' : ''}>${h.NOMUO}</option>`
     ).join('');
 
@@ -361,7 +347,7 @@ window.Modules.reportes = {
           <h3 style="color: var(--text-light); font-size: 0.9rem; text-transform: uppercase;">Ingresos Totales</h3>
           <div id="statIngresos" style="font-size: 2.5rem; font-weight: 700; color: var(--primary); margin: 0.5rem 0;">${data.ingresos}</div>
         </div>
-        
+
         <div class="card" style="border-left: 4px solid var(--danger);">
           <h3 style="color: var(--text-light); font-size: 0.9rem; text-transform: uppercase;">Egresos Totales</h3>
           <div id="statEgresos" style="font-size: 2.5rem; font-weight: 700; color: var(--danger); margin: 0.5rem 0;">${data.egresos}</div>
@@ -399,7 +385,7 @@ window.Modules.reportes = {
 
   renderEstudiosStats(data) {
     const container = document.getElementById("reportDataContainer");
-    
+
     let resumenHtml = data.resumen.map(r => `
       <div class="card" style="background: var(--background); border: none;">
         <h4 style="color: var(--text-light); font-size: 0.8rem; text-transform: uppercase;">${r.NOMBRELABORATORIO}</h4>
@@ -465,10 +451,10 @@ window.Modules.reportes = {
     `;
 
     data.forEach(item => {
-      const badge = item.tipo_mov === 'Ingreso' 
-        ? '<span style="color: var(--primary); background: #eff6ff; padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">Ingreso</span>' 
+      const badge = item.tipo_mov === 'Ingreso'
+        ? '<span style="color: var(--primary); background: #eff6ff; padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">Ingreso</span>'
         : '<span style="color: var(--danger); background: #fef2f2; padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">Egreso</span>';
-      
+
       html += `
         <tr>
           <td>${badge}</td>
@@ -486,7 +472,6 @@ window.Modules.reportes = {
     this.currentView = 'procedimientos';
     const contentArea = document.getElementById("contentArea");
 
-    // Hospital filter: quirofanos -> areas -> hospital (soportado por el PHP via hospital_id=UNI_ORG)
     const hospitalOptions = this.hospitales.map(h =>
       `<option value="${h.UNI_ORG}" ${this.selectedHospital === h.UNI_ORG ? 'selected' : ''}>${h.NOMUO}</option>`
     ).join('');
@@ -577,9 +562,9 @@ window.Modules.reportes = {
 
   async loadQuirofanosProc() {
     try {
-    const hospitalId = this.selectedHospital || '';
-    const url = `../api/quirofanos/listar_quirofanos.php?hospital_id=${hospitalId}`;
-    const response = await fetch(url, { credentials: "include" });
+      const hospitalId = this.selectedHospital || '';
+      const url = `../api/quirofanos/listar_quirofanos.php?hospital_id=${hospitalId}`;
+      const response = await fetch(url, { credentials: "include" });
       const res = await response.json();
 
       const select = document.getElementById("filterQuirofanoProc");
@@ -616,48 +601,46 @@ window.Modules.reportes = {
   },
 
   async fetchProcedimientosData() {
-  const container = document.getElementById("reportDataContainer");
-  // 1. Obtener valores y normalizar: si es cadena vacía, dejar vacío para que no afecte la URL
-  const hospital    = this.selectedHospital || ''; 
-  const quirofano   = document.getElementById("filterQuirofanoProc")?.value || '';
-  const tipoAtencion = document.getElementById("filterTipoAtencionProc")?.value || '';
-  const tipoProcId  = document.getElementById("filterTipoProcedimientoProc")?.value || '';
-  const fechaDesde  = document.getElementById("filterFechaDesdeProc")?.value || '';
-  const fechaHasta  = document.getElementById("filterFechaHastaProc")?.value || '';
+    const container = document.getElementById("reportDataContainer");
 
-  container.innerHTML = `<p style="text-align: center; color: var(--text-light); padding: 3rem;">Cargando datos...</p>`;
+    const hospital = this.selectedHospital || '';
+    const quirofano = document.getElementById("filterQuirofanoProc")?.value || '';
+    const tipoAtencion = document.getElementById("filterTipoAtencionProc")?.value || '';
+    const tipoProcId = document.getElementById("filterTipoProcedimientoProc")?.value || '';
+    const fechaDesde = document.getElementById("filterFechaDesdeProc")?.value || '';
+    const fechaHasta = document.getElementById("filterFechaHastaProc")?.value || '';
 
-  try {
-    // 2. Construir URL usando URLSearchParams para asegurar que los caracteres se escapen correctamente
-    const params = new URLSearchParams({
-      hospital_id: hospital,
-      quirofano_id: quirofano,
-      tipo_atencion: tipoAtencion,
-      tipo_procedimiento_id: tipoProcId,
-      fecha_desde: fechaDesde,
-      fecha_hasta: fechaHasta
-    });
+    container.innerHTML = `<p style="text-align: center; color: var(--text-light); padding: 3rem;">Cargando datos...</p>`;
 
-    const url = `../api/reportes/procedimientos_quirofano.php?${params.toString()}`;
-    const response = await fetch(url, { credentials: "include" });
-    const res = await response.json();
+    try {
+      const params = new URLSearchParams({
+        hospital_id: hospital,
+        quirofano_id: quirofano,
+        tipo_atencion: tipoAtencion,
+        tipo_procedimiento_id: tipoProcId,
+        fecha_desde: fechaDesde,
+        fecha_hasta: fechaHasta
+      });
 
-    if (res.ok) {
-      this.renderProcedimientosStats(res.data);
-    } else {
-      UI.toast.show(res.message, "error");
-      container.innerHTML = `<p style="text-align: center; color: var(--danger); padding: 3rem;">${res.message}</p>`;
+      const url = `../api/reportes/procedimientos_quirofano.php?${params.toString()}`;
+      const response = await fetch(url, { credentials: "include" });
+      const res = await response.json();
+
+      if (res.ok) {
+        this.renderProcedimientosStats(res.data);
+      } else {
+        UI.toast.show(res.message, "error");
+        container.innerHTML = `<p style="text-align: center; color: var(--danger); padding: 3rem;">${res.message}</p>`;
+      }
+    } catch (error) {
+      UI.toast.show("Error al cargar datos del reporte", "error");
+      container.innerHTML = `<p style="text-align: center; color: var(--danger); padding: 3rem;">Ocurrió un error de conexión con la base de datos.</p>`;
     }
-  } catch (error) {
-    // ... error handling
-  }
-},
+  },
 
   renderProcedimientosStats(data) {
     const container = document.getElementById("reportDataContainer");
 
-    // El PHP devuelve: data.resumen { total, partos, cirugias } y data.detallado[]
-    // detallado: { FECHA, TIPO_ATENCION, NOMBREQUIROFANO, NOMBREPROCEDIMIENTO, total }
     const { resumen, detallado } = data;
 
     const tipoStyle = (tipo) => tipo === 'Partos'
@@ -729,7 +712,6 @@ window.Modules.reportes = {
     `;
   },
 
-<<<<<<< HEAD
   async loadConsultasEspecialistasView() {
     this.currentView = 'consultas_especialistas';
     const contentArea = document.getElementById("contentArea");
@@ -756,18 +738,21 @@ window.Modules.reportes = {
               ${hospitalOptions}
             </select>
           </div>
+
           <div>
             <label for="filterEspecialidadEsp" style="font-weight: 600; font-size: 0.9rem; display:block; margin-bottom:0.5rem;">Especialidad:</label>
             <select id="filterEspecialidadEsp" class="form-group" style="margin-bottom: 0; width: 100%;">
               <option value="">Todas las especialidades</option>
             </select>
           </div>
+
           <div>
             <label for="filterConsultorioEsp" style="font-weight: 600; font-size: 0.9rem; display:block; margin-bottom:0.5rem;">Consultorio:</label>
             <select id="filterConsultorioEsp" class="form-group" style="margin-bottom: 0; width: 100%;">
               <option value="">Todos los consultorios</option>
             </select>
           </div>
+
           <div>
             <label for="filterAtencionEsp" style="font-weight: 600; font-size: 0.9rem; display:block; margin-bottom:0.5rem;">Tipo de Atención:</label>
             <select id="filterAtencionEsp" class="form-group" style="margin-bottom: 0; width: 100%;">
@@ -777,10 +762,12 @@ window.Modules.reportes = {
               <option value="Urgencia">Urgencia</option>
             </select>
           </div>
+
           <div>
             <label for="filterFechaDesdeEsp" style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Desde:</label>
             <input type="date" id="filterFechaDesdeEsp" class="form-group" style="margin-bottom: 0; width: 100%;" value="${this.selectedFechaDesde}" />
           </div>
+
           <div>
             <label for="filterFechaHastaEsp" style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Hasta:</label>
             <input type="date" id="filterFechaHastaEsp" class="form-group" style="margin-bottom: 0; width: 100%;" value="${this.selectedFechaHasta}" />
@@ -794,20 +781,25 @@ window.Modules.reportes = {
     `;
 
     document.getElementById("refreshEspecialistasBtn").addEventListener("click", () => this.fetchConsultasEspecialistasData());
+
     document.getElementById("filterHospitalEsp").addEventListener("change", (e) => {
       this.selectedHospital = e.target.value;
       this.fetchConsultasEspecialistasData();
     });
+
     document.getElementById("filterEspecialidadEsp").addEventListener("change", (e) => {
       this.selectedEspecialidad = e.target.value;
       this.fetchConsultasEspecialistasData();
     });
+
     document.getElementById("filterConsultorioEsp").addEventListener("change", () => this.fetchConsultasEspecialistasData());
     document.getElementById("filterAtencionEsp").addEventListener("change", () => this.fetchConsultasEspecialistasData());
+
     document.getElementById("filterFechaDesdeEsp").addEventListener("change", (e) => {
       this.selectedFechaDesde = e.target.value;
       this.fetchConsultasEspecialistasData();
     });
+
     document.getElementById("filterFechaHastaEsp").addEventListener("change", (e) => {
       this.selectedFechaHasta = e.target.value;
       this.fetchConsultasEspecialistasData();
@@ -821,21 +813,26 @@ window.Modules.reportes = {
     try {
       const resEspecialidades = await fetch("../api/especialidades/listar_especialidades.php", { credentials: "include" });
       const dataEspecialidades = await resEspecialidades.json();
+
       if (dataEspecialidades.ok) {
         const select = document.getElementById("filterEspecialidadEsp");
-        if(select) {
+
+        if (select) {
           dataEspecialidades.data.forEach(e => {
             select.innerHTML += `<option value="${e.ID}">${e.ESPECIALIDAD}</option>`;
           });
+
           select.value = this.selectedEspecialidad;
         }
       }
 
       const resConsultorios = await fetch("../api/consultorios/listar_consultorios.php", { credentials: "include" });
       const dataConsultorios = await resConsultorios.json();
+
       if (dataConsultorios.ok) {
         const select = document.getElementById("filterConsultorioEsp");
-        if(select) {
+
+        if (select) {
           dataConsultorios.data.forEach(c => {
             select.innerHTML += `<option value="${c.ID}">${c.CONSULTORIO}</option>`;
           });
@@ -854,9 +851,9 @@ window.Modules.reportes = {
     const atencion = document.getElementById("filterAtencionEsp")?.value || '';
     const fechaDesde = document.getElementById("filterFechaDesdeEsp")?.value || '';
     const fechaHasta = document.getElementById("filterFechaHastaEsp")?.value || '';
-    
+
     container.innerHTML = `<p style="text-align: center; color: var(--text-light); padding: 3rem;">Cargando datos...</p>`;
-    
+
     try {
       const params = new URLSearchParams({
         hospital_id: hospital,
@@ -948,18 +945,21 @@ window.Modules.reportes = {
     `;
   },
 
-=======
->>>>>>> 7632ec7ab761cb0c642060144bfa48dc6cee148f
   animateValue(id, start, end, duration) {
     const obj = document.getElementById(id);
     if (!obj) return;
+
     let startTimestamp = null;
+
     const step = (timestamp) => {
       if (!startTimestamp) startTimestamp = timestamp;
+
       const progress = Math.min((timestamp - startTimestamp) / duration, 1);
       obj.innerHTML = Math.floor(progress * (end - start) + start);
+
       if (progress < 1) window.requestAnimationFrame(step);
     };
+
     window.requestAnimationFrame(step);
   }
-};  
+};
