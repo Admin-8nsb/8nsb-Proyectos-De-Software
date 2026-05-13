@@ -14,7 +14,10 @@ window.Modules.reportes = {
   selectedTipoProcedimiento: '',
   selectedFechaDesde: '',
   selectedFechaHasta: '',
+<<<<<<< HEAD
   selectedEspecialidad: '',
+=======
+>>>>>>> 7632ec7ab761cb0c642060144bfa48dc6cee148f
 
   async init() {
     await this.loadHospitales();
@@ -78,14 +81,23 @@ window.Modules.reportes = {
         </div>
 
         <!-- REPORTE 2: Especialistas -->
+<<<<<<< HEAD
         <div class="card report-card" style="cursor: pointer; transition: var(--transition); border-top: 4px solid #10b981;" onclick="Modules.reportes.loadConsultasEspecialistasView()">
+=======
+        <div class="card report-card" style="opacity: 0.7; border-top: 4px solid var(--secondary); background: #fcfcfc;">
+>>>>>>> 7632ec7ab761cb0c642060144bfa48dc6cee148f
           <div style="font-size: 2rem; margin-bottom: 1rem;">👨‍⚕️</div>
           <h3>Consultas de Especialistas</h3>
           <p style="font-size: 0.875rem; color: var(--text-light); margin-top: 0.5rem;">
             Número de consultas de médicos especialistas por especialidad y consultorio.
           </p>
+<<<<<<< HEAD
           <div style="margin-top: 1.5rem; color: #10b981; font-weight: 600; font-size: 0.85rem;">
             Ver reporte →
+=======
+          <div style="margin-top: 1.5rem; color: var(--text-light); font-weight: 600; font-size: 0.85rem;">
+            ⏳ Próximamente
+>>>>>>> 7632ec7ab761cb0c642060144bfa48dc6cee148f
           </div>
         </div>
 
@@ -717,6 +729,7 @@ window.Modules.reportes = {
     `;
   },
 
+<<<<<<< HEAD
   async loadConsultasEspecialistasView() {
     this.currentView = 'consultas_especialistas';
     const contentArea = document.getElementById("contentArea");
@@ -935,6 +948,8 @@ window.Modules.reportes = {
     `;
   },
 
+=======
+>>>>>>> 7632ec7ab761cb0c642060144bfa48dc6cee148f
   animateValue(id, start, end, duration) {
     const obj = document.getElementById(id);
     if (!obj) return;
