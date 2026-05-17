@@ -1,5 +1,5 @@
 # Sistema de Gestión Hospitalaria - 8nsb
-
+# DALE CTRL SHIFT V PARA DARLE FORMATO AL README 
 Este proyecto es un sistema integral de gestión hospitalaria diseñado para administrar las operaciones clínicas y administrativas de un centro de salud. Permite el control detallado de pacientes, personal médico, infraestructura hospitalaria, servicios clínicos, ingresos, egresos, consultas, estudios y procedimientos médicos.
 
 ---
