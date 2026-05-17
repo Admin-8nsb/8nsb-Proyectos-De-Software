@@ -2,7 +2,7 @@
 class Database
 {
     private string $host = "localhost";
-    private string $db_name = "his_db";
+    private string $db_name = "hospital_db";
     private string $username = "root";
     private string $password = "";
     public ?PDO $conn = null;
