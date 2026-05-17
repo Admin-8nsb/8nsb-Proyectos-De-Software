@@ -157,7 +157,10 @@ window.Modules.reportes = {
             <button class="btn btn-secondary" style="margin-bottom: 0.5rem;" onclick="Modules.reportes.showMenu()">← Volver al Menú</button>
             <h2>🩺 Reporte de Medicina General / Familiar</h2>
           </div>
-          <button id="refreshMedGenBtn" class="btn btn-primary">🔄 Actualizar Datos</button>
+          <div style="display: flex; gap: 0.5rem;">
+            <button id="exportMedGenExcelBtn" class="btn" style="background-color: #16a34a; color: white;">📥 Descargar Excel</button>
+            <button id="refreshMedGenBtn" class="btn btn-primary">🔄 Actualizar Datos</button>
+          </div>
         </div>
 
         <div style="background: var(--background); padding: 1rem; border-radius: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
@@ -187,6 +190,15 @@ window.Modules.reportes = {
     `;
 
     document.getElementById("refreshMedGenBtn").addEventListener("click", () => this.fetchMedicinaGeneralData());
+    document.getElementById("exportMedGenExcelBtn").addEventListener("click", () => {
+      const params = {
+        type: 'medicina_general',
+        hospital_id: this.selectedHospital || '',
+        fecha_desde: this.selectedFechaDesde || '',
+        fecha_hasta: this.selectedFechaHasta || ''
+      };
+      this.exportToExcel(params);
+    });
     document.getElementById("filterHospitalMed").addEventListener("change", (e) => {
       this.selectedHospital = e.target.value;
       this.fetchMedicinaGeneralData();
@@ -310,7 +322,10 @@ window.Modules.reportes = {
             <button class="btn btn-secondary" style="margin-bottom: 0.5rem;" onclick="Modules.reportes.showMenu()">← Volver al Menú</button>
             <h2>🚪 Reporte de Ingresos y Egresos Hospitalarios</h2>
           </div>
-          <button id="refreshHospBtn" class="btn btn-primary">🔄 Actualizar Datos</button>
+          <div style="display: flex; gap: 0.5rem;">
+            <button id="exportHospExcelBtn" class="btn" style="background-color: #16a34a; color: white;">📥 Descargar Excel</button>
+            <button id="refreshHospBtn" class="btn btn-primary">🔄 Actualizar Datos</button>
+          </div>
         </div>
 
         <div style="background: var(--background); padding: 1rem; border-radius: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
@@ -340,6 +355,15 @@ window.Modules.reportes = {
     `;
 
     document.getElementById("refreshHospBtn").addEventListener("click", () => this.fetchIngresosEgresosHospData());
+    document.getElementById("exportHospExcelBtn").addEventListener("click", () => {
+      const params = {
+        type: 'ingresos_egresos_hosp',
+        hospital_id: this.selectedHospital || '',
+        fecha_desde: this.selectedFechaDesde || '',
+        fecha_hasta: this.selectedFechaHasta || ''
+      };
+      this.exportToExcel(params);
+    });
     document.getElementById("filterHospitalHosp").addEventListener("change", (e) => {
       this.selectedHospital = e.target.value;
       this.fetchIngresosEgresosHospData();
@@ -472,7 +496,10 @@ window.Modules.reportes = {
             <button class="btn btn-secondary" style="margin-bottom: 0.5rem;" onclick="Modules.reportes.showMenu()">← Volver al Menú</button>
             <h2>🏢 Reporte de Otros Consultorios</h2>
           </div>
-          <button id="refreshOtrosBtn" class="btn btn-primary">🔄 Actualizar Datos</button>
+          <div style="display: flex; gap: 0.5rem;">
+            <button id="exportOtrosExcelBtn" class="btn" style="background-color: #16a34a; color: white;">📥 Descargar Excel</button>
+            <button id="refreshOtrosBtn" class="btn btn-primary">🔄 Actualizar Datos</button>
+          </div>
         </div>
 
         <div style="background: var(--background); padding: 1rem; border-radius: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
@@ -509,6 +536,16 @@ window.Modules.reportes = {
     `;
 
     document.getElementById("refreshOtrosBtn").addEventListener("click", () => this.fetchOtrosConsultoriosData());
+    document.getElementById("exportOtrosExcelBtn").addEventListener("click", () => {
+      const params = {
+        type: 'otros_consultorios',
+        hospital_id: this.selectedHospital || '',
+        servicio_id: document.getElementById("filterServicio")?.value || '',
+        consultorio_id: document.getElementById("filterConsultorio")?.value || '',
+        atencion: document.getElementById("filterAtencion")?.value || ''
+      };
+      this.exportToExcel(params);
+    });
     document.getElementById("filterServicio").addEventListener("change", () => this.fetchOtrosConsultoriosData());
     document.getElementById("filterConsultorio").addEventListener("change", () => this.fetchOtrosConsultoriosData());
     document.getElementById("filterAtencion").addEventListener("change", () => this.fetchOtrosConsultoriosData());
@@ -618,7 +655,10 @@ window.Modules.reportes = {
             <button class="btn btn-secondary" style="margin-bottom: 0.5rem;" onclick="Modules.reportes.showMenu()">← Volver al Menú</button>
             <h2>${title}</h2>
           </div>
-          <button id="${btnId}" class="btn btn-primary">🔄 Actualizar Datos</button>
+          <div style="display: flex; gap: 0.5rem;">
+            <button id="exportGenericExcelBtn" class="btn" style="background-color: #16a34a; color: white;">📥 Descargar Excel</button>
+            <button id="${btnId}" class="btn btn-primary">🔄 Actualizar Datos</button>
+          </div>
         </div>
 
         <div style="background: var(--background); padding: 1rem; border-radius: 8px; display: flex; align-items: center; gap: 1rem;">
@@ -634,6 +674,16 @@ window.Modules.reportes = {
         <p style="text-align: center; color: var(--text-light); padding: 3rem;">Cargando datos del reporte...</p>
       </div>
     `;
+
+    document.getElementById("exportGenericExcelBtn").addEventListener("click", () => {
+      const params = {
+        type: this.currentView,
+        hospital_id: this.selectedHospital || '',
+        fecha_desde: this.selectedFechaDesde || '',
+        fecha_hasta: this.selectedFechaHasta || ''
+      };
+      this.exportToExcel(params);
+    });
 
     document.getElementById("filterHospital").addEventListener("change", (e) => {
       this.selectedHospital = e.target.value;
@@ -802,7 +852,10 @@ window.Modules.reportes = {
             <button class="btn btn-secondary" style="margin-bottom: 0.5rem;" onclick="Modules.reportes.showMenu()">← Volver al Menú</button>
             <h2>🔪 Reporte de Cirugías y Partos</h2>
           </div>
-          <button id="refreshProcedimientosBtn" class="btn btn-primary">🔄 Actualizar Datos</button>
+          <div style="display: flex; gap: 0.5rem;">
+            <button id="exportProcExcelBtn" class="btn" style="background-color: #16a34a; color: white;">📥 Descargar Excel</button>
+            <button id="refreshProcedimientosBtn" class="btn btn-primary">🔄 Actualizar Datos</button>
+          </div>
         </div>
 
         <div style="background: var(--background); padding: 1rem; border-radius: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
@@ -857,6 +910,18 @@ window.Modules.reportes = {
     `;
 
     document.getElementById("refreshProcedimientosBtn").addEventListener("click", () => this.fetchProcedimientosData());
+    document.getElementById("exportProcExcelBtn").addEventListener("click", () => {
+      const params = {
+        type: 'procedimientos',
+        hospital_id: this.selectedHospital || '',
+        quirofano_id: document.getElementById("filterQuirofanoProc")?.value || '',
+        tipo_atencion: document.getElementById("filterTipoAtencionProc")?.value || '',
+        tipo_procedimiento_id: document.getElementById("filterTipoProcedimientoProc")?.value || '',
+        fecha_desde: this.selectedFechaDesde || '',
+        fecha_hasta: this.selectedFechaHasta || ''
+      };
+      this.exportToExcel(params);
+    });
     document.getElementById("filterHospitalProc").addEventListener("change", (e) => {
       this.selectedHospital = e.target.value;
       this.loadQuirofanosProc();
@@ -1046,7 +1111,10 @@ window.Modules.reportes = {
             <button class="btn btn-secondary" style="margin-bottom: 0.5rem;" onclick="Modules.reportes.showMenu()">← Volver al Menú</button>
             <h2>👨‍⚕️ Reporte de Consultas de Especialistas</h2>
           </div>
-          <button id="refreshEspecialistasBtn" class="btn btn-primary">🔄 Actualizar Datos</button>
+          <div style="display: flex; gap: 0.5rem;">
+            <button id="exportEspecialistasExcelBtn" class="btn" style="background-color: #16a34a; color: white;">📥 Descargar Excel</button>
+            <button id="refreshEspecialistasBtn" class="btn btn-primary">🔄 Actualizar Datos</button>
+          </div>
         </div>
 
         <div style="background: var(--background); padding: 1rem; border-radius: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
@@ -1100,7 +1168,18 @@ window.Modules.reportes = {
     `;
 
     document.getElementById("refreshEspecialistasBtn").addEventListener("click", () => this.fetchConsultasEspecialistasData());
-
+    document.getElementById("exportEspecialistasExcelBtn").addEventListener("click", () => {
+      const params = {
+        type: 'consultas_especialistas',
+        hospital_id: document.getElementById("filterHospitalEsp")?.value || '',
+        especialidad_id: document.getElementById("filterEspecialidadEsp")?.value || '',
+        consultorio_id: document.getElementById("filterConsultorioEsp")?.value || '',
+        atencion: document.getElementById("filterAtencionEsp")?.value || '',
+        fecha_desde: this.selectedFechaDesde || '',
+        fecha_hasta: this.selectedFechaHasta || ''
+      };
+      this.exportToExcel(params);
+    });
     document.getElementById("filterHospitalEsp").addEventListener("change", (e) => {
       this.selectedHospital = e.target.value;
       this.fetchConsultasEspecialistasData();
@@ -1280,5 +1359,13 @@ window.Modules.reportes = {
     };
 
     window.requestAnimationFrame(step);
+  },
+
+  exportToExcel(params) {
+    const queryParams = new URLSearchParams(params);
+    const url = `../api/reportes/exportar_excel.php?${queryParams.toString()}`;
+    
+    // Abrir en una nueva pestaña para descargar
+    window.open(url, '_blank');
   }
 };
