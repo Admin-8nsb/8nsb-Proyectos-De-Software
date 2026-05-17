@@ -20,12 +20,18 @@ try {
                 e.ID,
                 e.HABITACIONES_ID,
                 h.NOMBREHABITACION,
+                h.AREAS_ID,
+                a.NOMBREAREA,
+                a.HOSPITAL_UNI_ORG,
+                hosp.NOMUO AS HOSPITAL,
                 e.TIPO,
                 e.INGRESOS_ID,
                 e.FECHAEGRESO,
                 e.OBSERVACIONES
             FROM EGRESOS e
             INNER JOIN HABITACIONES h ON h.ID = e.HABITACIONES_ID
+            INNER JOIN AREAS a ON a.ID = h.AREAS_ID
+            INNER JOIN HOSPITAL hosp ON hosp.UNI_ORG = a.HOSPITAL_UNI_ORG
             ORDER BY e.ID ASC, e.HABITACIONES_ID ASC";
 
     $stmt = $conn->query($sql);

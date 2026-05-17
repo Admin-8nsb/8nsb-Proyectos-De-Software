@@ -51,8 +51,8 @@ window.Modules.consultas = {
       const dataConsultorios = await resConsultorios.json();
       if (dataConsultorios.ok) this.consultorios = dataConsultorios.data;
 
-      // Cargar tipos de servicio excluyendo Medicina General (ID 1)
-      const resServicios = await fetch("../api/tipos_servicios/listar_tipos_servicios.php?exclude_id=1", { credentials: "include" });
+      // Cargar tipos de servicio (incluyendo Medicina General)
+      const resServicios = await fetch("../api/tipos_servicios/listar_tipos_servicios.php", { credentials: "include" });
       const dataServicios = await resServicios.json();
       if (dataServicios.ok) this.tiposServicio = dataServicios.data;
 
@@ -141,6 +141,15 @@ window.Modules.consultas = {
     container.innerHTML = html;
   },
 
+  renderMedicosSelect(list, selectedExpediente = null) {
+    const select = document.getElementById("cons_medico");
+    if (!select) return;
+
+    select.innerHTML = `<option value="">Seleccione un médico</option>
+      ${list.map(m => `<option value="${m.EXPEDIENTE}" ${selectedExpediente == m.EXPEDIENTE ? 'selected' : ''}>${m.NOMBRE} ${m.APELLIDOPATERNO} (${m.ESPECIALIDAD})</option>`).join('')}
+    `;
+  },
+
   filter(query) {
     const q = query.toLowerCase();
 
@@ -194,7 +203,7 @@ window.Modules.consultas = {
           <label>Consultorio</label>
           <select id="cons_consultorio" required>
             <option value="">Seleccione un consultorio</option>
-            ${this.consultorios.map(c => `<option value="${c.ID}" ${isEdit && (item.CONSULTORIOS_ID == c.ID) ? 'selected' : ''}>${c.CONSULTORIO}</option>`).join('')}
+            ${this.consultorios.map(c => `<option value="${c.ID}" ${isEdit && (item.CONSULTORIOS_ID == c.ID) ? 'selected' : ''}>${c.CONSULTORIO} - (${c.HOSPITAL})</option>`).join('')}
           </select>
         </div>
 
@@ -224,6 +233,37 @@ window.Modules.consultas = {
     `;
 
     UI.modal.show(title, body, footer);
+
+    // Event listener para filtrar médicos por hospital cuando cambie el consultorio
+    const consultorioSelect = document.getElementById("cons_consultorio");
+    const medicoSelect = document.getElementById("cons_medico");
+
+    consultorioSelect.addEventListener("change", () => {
+      const selectedId = consultorioSelect.value;
+      if (!selectedId) {
+        // Si no hay consultorio, mostrar todos o ninguno (aquí mostramos todos por defecto)
+        this.renderMedicosSelect(this.medicos);
+        return;
+      }
+
+      const consultorio = this.consultorios.find(c => c.ID == selectedId);
+      if (consultorio) {
+        // Filtrar médicos que pertenezcan al mismo hospital que el consultorio
+        const filteredMedicos = this.medicos.filter(m => m.HOSPITAL_UNI_ORG === consultorio.HOSPITAL_UNI_ORG);
+        this.renderMedicosSelect(filteredMedicos);
+      }
+    });
+
+    if (isEdit) {
+      // Al editar, disparar manualmente el filtro inicial
+      setTimeout(() => {
+        const consultorio = this.consultorios.find(c => c.ID == item.CONSULTORIOS_ID);
+        if (consultorio) {
+          const filteredMedicos = this.medicos.filter(m => m.HOSPITAL_UNI_ORG === consultorio.HOSPITAL_UNI_ORG);
+          this.renderMedicosSelect(filteredMedicos, item.MEDICOS_EXPEDIENTE);
+        }
+      }, 0);
+    }
 
     if (!isEdit) {
       // Set default date to now for new entries

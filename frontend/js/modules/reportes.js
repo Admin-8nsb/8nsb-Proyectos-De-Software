@@ -519,7 +519,7 @@ window.Modules.reportes = {
 
   async loadCatalogosOtrosConsultorios() {
     try {
-      const resServicios = await fetch("../api/tipos_servicios/listar_tipos_servicios.php?exclude_id=1", { credentials: "include" });
+      const resServicios = await fetch("../api/tipos_servicios/listar_tipos_servicios.php", { credentials: "include" });
       const dataServicios = await resServicios.json();
 
       if (dataServicios.ok) {

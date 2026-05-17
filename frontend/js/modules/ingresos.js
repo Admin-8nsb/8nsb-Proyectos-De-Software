@@ -201,7 +201,7 @@ async loadHabitaciones() {
           <td><span style="font-weight: 600; color: var(--primary);">#${item.ID}</span></td>
           <td>
             <div style="font-weight: 600;">${item.NOMBREHABITACION}</div>
-            <div style="font-size: 0.75rem; color: var(--text-light);">${item.HOSPITAL_UNI_ORG} - Area ID: ${item.AREAS_ID}</div>
+            <div style="font-size: 0.75rem; color: var(--text-light);">${item.HOSPITAL || item.HOSPITAL_UNI_ORG} - ${item.NOMBREAREA || `Area ID: ${item.AREAS_ID}`}</div>
           </td>
           <td>${subInfo}</td>
           <td style="font-size: 0.85rem;">${new Date(fecha).toLocaleString()}</td>
@@ -242,14 +242,19 @@ async loadHabitaciones() {
     this.renderTable();
   },
 
+  renderMedicosSelect(list, selectedExpediente = null) {
+    const select = document.getElementById("i_medico");
+    if (!select) return;
+
+    select.innerHTML = `<option value="">Seleccione un médico...</option>
+      ${list.map(m => `<option value="${m.EXPEDIENTE}" ${selectedExpediente == m.EXPEDIENTE ? 'selected' : ''}>${m.NOMBRE} ${m.APELLIDOPATERNO} (${m.ESPECIALIDAD})</option>`).join('')}
+    `;
+  },
+
   async showIngresoModal(item = null) {
     const isEdit = item !== null;
     const title = isEdit ? "Editar Ingreso" : "Registrar Nuevo Ingreso";
     
-    let medicoOptions = this.medicos.map(m => 
-      `<option value="${m.EXPEDIENTE}" ${isEdit && item.MEDICOS_EXPEDIENTE == m.EXPEDIENTE ? 'selected' : ''}>${m.NOMBRE} ${m.APELLIDOPATERNO} (${m.EXPEDIENTE})</option>`
-    ).join('');
-
     let hospitalOptions = this.hospitales.map(h => 
       `<option value="${h.UNI_ORG}" ${isEdit && item.HOSPITAL_UNI_ORG == h.UNI_ORG ? 'selected' : ''}>${h.NOMUO}</option>`
     ).join('');
@@ -293,7 +298,6 @@ async loadHabitaciones() {
           <label for="i_medico">Médico Responsable</label>
           <select id="i_medico" required>
             <option value="">Seleccione un médico...</option>
-            ${medicoOptions}
           </select>
         </div>
 
@@ -335,8 +339,13 @@ async loadHabitaciones() {
 
     aSelect.innerHTML = '<option value="">Seleccione un área...</option>' +
       areas.map(a => `<option value="${a.ID}">${a.NOMBREAREA}</option>`).join('');
+    
+    // Filtrar médicos por hospital
+    const filteredMedicos = this.medicos.filter(m => m.HOSPITAL_UNI_ORG === hId);
+    this.renderMedicosSelect(filteredMedicos);
   } else {
     aSelect.innerHTML = '<option value="">Seleccione un área...</option>';
+    this.renderMedicosSelect([]);
   }
 });
 
@@ -370,6 +379,10 @@ aSelect.addEventListener("change", async () => {
       const habs = await this.loadHabitacionesPorArea(item.AREAS_ID);
       habSelect.innerHTML = '<option value="">Seleccione una habitación...</option>' + 
         habs.map(h => `<option value="${h.ID}" ${item.HABITACIONES_ID == h.ID ? 'selected' : ''}>${h.NOMBREHABITACION}</option>`).join('');
+      
+      // Filtrar médicos por el hospital del registro actual
+      const filteredMedicos = this.medicos.filter(m => m.HOSPITAL_UNI_ORG === item.HOSPITAL_UNI_ORG);
+      this.renderMedicosSelect(filteredMedicos, item.MEDICOS_EXPEDIENTE);
     }
 
     document.getElementById("saveIngresoBtn").addEventListener("click", () => this.saveIngreso(isEdit));

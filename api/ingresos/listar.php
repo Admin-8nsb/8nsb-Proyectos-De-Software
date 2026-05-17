@@ -21,7 +21,9 @@ try {
                 i.HABITACIONES_ID,
                 h.NOMBREHABITACION,
                 h.AREAS_ID,
+                a.NOMBREAREA,
                 a.HOSPITAL_UNI_ORG,
+                hosp.NOMUO AS HOSPITAL,
                 i.TIPO,
                 i.FECHAINGRESO,
                 i.OBSERVACIONES,
@@ -32,6 +34,7 @@ try {
             FROM INGRESOS i
             INNER JOIN HABITACIONES h ON h.ID = i.HABITACIONES_ID
             INNER JOIN AREAS a ON a.ID = h.AREAS_ID
+            INNER JOIN HOSPITAL hosp ON hosp.UNI_ORG = a.HOSPITAL_UNI_ORG
             INNER JOIN MEDICOS m ON m.EXPEDIENTE = i.MEDICOS_EXPEDIENTE
             ORDER BY i.ID ASC, i.HABITACIONES_ID ASC";
 
