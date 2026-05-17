@@ -26,7 +26,7 @@ const MODULES_CONFIG = [
     id: 'reportes',
     label: 'Reportes',
     icon: '📊',
-    roles: ['Administrador', 'Recepcion']
+    roles: ['Administrador', 'Recepcion','Medico', 'Laboratorio', 'Quirofano']
   },
   { 
     id: 'dashboard', 
@@ -112,6 +112,7 @@ const MODULES_CONFIG = [
     icon: '🥼',
     roles: ['Administrador', 'Recepcion', 'Medico']
   },
+  /*
   {
     id: 'quirofanos',
     label: 'Quirófanos',
@@ -124,6 +125,7 @@ const MODULES_CONFIG = [
     icon: '🔪',
     roles: ['Administrador', 'Quirofano']
   },
+  */
   {
     id: 'usuarios',
     label: 'Usuarios y Accesos',
@@ -208,7 +210,7 @@ function renderSidebar() {
       navLink.href = "#";
       navLink.className = `nav-link ${state.activeModule === module.id ? 'active' : ''}`;
       navLink.setAttribute("data-module", module.id);
-      navLink.innerHTML = `<span>${module.icon}</span> ${module.label}`;
+      navLink.innerHTML = `<span>${module.icon}</span> <span>${module.label}</span>`;
       
       navLink.addEventListener("click", (e) => {
         e.preventDefault();

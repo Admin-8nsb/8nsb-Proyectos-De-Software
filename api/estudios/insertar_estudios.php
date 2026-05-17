@@ -73,12 +73,18 @@ try {
         ]);
     }
 
+    $sqlNextId = "SELECT COALESCE(MAX(ID), 0) + 1 AS nextId FROM ESTUDIOS";
+    $stmtNextId = $conn->query($sqlNextId);
+    $nextId = $stmtNextId->fetch()["nextId"];
+
     $sql = "INSERT INTO ESTUDIOS (
+                ID,
                 TIPOESTUDIOS_ID,
                 MEDICOS_EXPEDIENTE,
                 FECHAESTUDIO,
                 ESTATUS
             ) VALUES (
+                :id,
                 :tipoEstudiosId,
                 :medicosExpediente,
                 :fechaEstudio,
@@ -87,6 +93,7 @@ try {
 
     $stmt = $conn->prepare($sql);
     $stmt->execute([
+        ":id" => $nextId,
         ":tipoEstudiosId" => (int)$tipoEstudiosId,
         ":medicosExpediente" => (int)$medicosExpediente,
         ":fechaEstudio" => ($fechaEstudio === "" ? null : $fechaEstudio),

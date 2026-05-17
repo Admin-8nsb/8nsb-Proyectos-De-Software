@@ -169,11 +169,11 @@ window.Modules.laboratorios = {
 
     const body = `
       <form id="labForm">
-
+        ${isEdit ? `
         <div class="form-group">
           <label>ID</label>
-          <input type="number" id="l_id" value="${item ? item.ID : ''}" ${isEdit ? 'readonly' : ''} required>
-        </div>
+          <input type="number" id="l_id" value="${item.ID}" readonly>
+        </div>` : ''}
 
         <div class="form-group">
           <label>Nombre del Laboratorio</label>
@@ -211,14 +211,17 @@ window.Modules.laboratorios = {
 
   async save(isEdit) {
     const data = {
-      id: parseInt(document.getElementById("l_id").value),
       nombreLaboratorio: document.getElementById("l_nombre").value.trim(),
       ubicacion: document.getElementById("l_ubicacion").value.trim(),
       areasId: parseInt(document.getElementById("l_area").value)
     };
 
-    if (!data.id || !data.nombreLaboratorio || !data.areasId) {
-      UI.toast.show("ID, nombre y área son obligatorios", "warning");
+    if (isEdit) {
+      data.id = parseInt(document.getElementById("l_id").value);
+    }
+
+    if (!data.nombreLaboratorio || !data.areasId) {
+      UI.toast.show("Nombre y área son obligatorios", "warning");
       return;
     }
 

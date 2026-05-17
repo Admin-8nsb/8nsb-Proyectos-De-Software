@@ -12,6 +12,9 @@ if ($_SERVER["REQUEST_METHOD"] !== "GET") {
 
 requireLogin();
 
+$areaId = $_GET["area_id"] ?? null;
+$hospitalId = $_GET["hospital_id"] ?? null;
+
 try {
     $database = new Database();
     $conn = $database->getConnection();
@@ -30,9 +33,25 @@ try {
                 ON a.ID = h.AREAS_ID
             INNER JOIN HOSPITAL ho 
                 ON ho.UNI_ORG = a.HOSPITAL_UNI_ORG
-            ORDER BY h.ID ASC";
+            WHERE 1 = 1";
 
-    $stmt = $conn->query($sql);
+    $params = [];
+
+    if ($areaId !== null && $areaId !== "") {
+        $sql .= " AND h.AREAS_ID = :area_id";
+        $params[":area_id"] = (int)$areaId;
+    }
+
+    if ($hospitalId !== null && $hospitalId !== "") {
+        $sql .= " AND a.HOSPITAL_UNI_ORG = :hospital_id";
+        $params[":hospital_id"] = $hospitalId;
+    }
+
+    $sql .= " ORDER BY h.ID ASC";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->execute($params);
+
     $data = $stmt->fetchAll();
 
     jsonResponse(200, [

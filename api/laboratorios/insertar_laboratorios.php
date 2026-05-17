@@ -67,11 +67,17 @@ try {
         ]);
     }
 
+    $sqlNextId = "SELECT COALESCE(MAX(ID), 0) + 1 AS nextId FROM LABORATORIOS";
+    $stmtNextId = $conn->query($sqlNextId);
+    $nextId = $stmtNextId->fetch()["nextId"];
+
     $sql = "INSERT INTO LABORATORIOS (
+                ID,
                 NOMBRELABORATORIO,
                 UBICACION,
                 AREAS_ID
             ) VALUES (
+                :id,
                 :nombreLaboratorio,
                 :ubicacion,
                 :areasId
@@ -79,6 +85,7 @@ try {
 
     $stmt = $conn->prepare($sql);
     $stmt->execute([
+        ":id" => $nextId,
         ":nombreLaboratorio" => $nombreLaboratorio,
         ":ubicacion" => ($ubicacion === "" ? null : $ubicacion),
         ":areasId" => (int)$areasId

@@ -6,10 +6,11 @@ window.Modules.estudios_gestion = {
   estudios: [],
   tipos: [],
   medicos: [],
+  laboratorios: [],
 
   async init() {
     this.renderLayout();
-    await Promise.all([this.loadTipos(), this.loadMedicos()]);
+    await Promise.all([this.loadTipos(), this.loadMedicos(), this.loadLaboratorios()]);
     this.loadData();
   },
 
@@ -51,6 +52,16 @@ window.Modules.estudios_gestion = {
       if (res.ok) this.medicos = res.data;
     } catch (error) {
       console.error("Error al cargar médicos:", error);
+    }
+  },
+
+  async loadLaboratorios() {
+    try {
+      const response = await fetch("../api/laboratorios/listar_laboratorios.php", { credentials: "include" });
+      const res = await response.json();
+      if (res.ok) this.laboratorios = res.data;
+    } catch (error) {
+      console.error("Error al cargar laboratorios:", error);
     }
   },
 
@@ -99,6 +110,7 @@ window.Modules.estudios_gestion = {
           <td><span class="badge" style="background: var(--background); color: var(--text);">#${item.ID}</span></td>
           <td>
             <div style="font-weight: 600;">${item.NOMBREESTUDIO}</div>
+            <div style="font-size: 0.75rem; color: var(--text-light);">${item.NOMBRELABORATORIO || ''}</div>
           </td>
           <td>${item.NOMBRE} ${item.APELLIDOPATERNO}</td>
           <td style="font-size: 0.85rem;">${new Date(item.FECHAESTUDIO).toLocaleString()}</td>
@@ -129,8 +141,8 @@ window.Modules.estudios_gestion = {
     const isEdit = item !== null;
     const title = isEdit ? "Editar Registro de Estudio" : "Registrar Nuevo Estudio";
     
-    let tipoOptions = this.tipos.map(t => 
-      `<option value="${t.ID}" ${isEdit && item.TIPOESTUDIOS_ID == t.ID ? 'selected' : ''}>${t.NOMBREESTUDIO} ($${parseFloat(t.COSTO).toFixed(2)})</option>`
+    let labOptions = this.laboratorios.map(l => 
+      `<option value="${l.ID}" ${isEdit && item.LABORATORIOS_ID == l.ID ? 'selected' : ''}>${l.NOMBRELABORATORIO}</option>`
     ).join('');
 
     let medicoOptions = this.medicos.map(m => 
@@ -140,11 +152,12 @@ window.Modules.estudios_gestion = {
     const body = `
       <form id="estudioForm">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          ${isEdit ? `
           <div class="form-group">
             <label for="e_id">ID de Registro</label>
-            <input type="number" id="e_id" value="${item ? item.ID : ''}" ${isEdit ? 'readonly' : ''} required>
-          </div>
-          <div class="form-group">
+            <input type="number" id="e_id" value="${item.ID}" readonly>
+          </div>` : ''}
+          <div class="form-group" ${!isEdit ? 'style="grid-column: span 2;"' : ''}>
             <label for="e_estatus">Estatus</label>
             <select id="e_estatus">
               <option value="1" ${isEdit && item.ESTATUS == 1 ? 'selected' : ''}>Completado</option>
@@ -154,10 +167,17 @@ window.Modules.estudios_gestion = {
         </div>
 
         <div class="form-group">
+          <label for="e_lab">Laboratorio</label>
+          <select id="e_lab" required>
+            <option value="">Seleccione un laboratorio...</option>
+            ${labOptions}
+          </select>
+        </div>
+
+        <div class="form-group">
           <label for="e_tipo">Tipo de Estudio</label>
-          <select id="e_tipo" required>
-            <option value="">Seleccione un estudio...</option>
-            ${tipoOptions}
+          <select id="e_tipo" required disabled>
+            <option value="">Primero seleccione un laboratorio...</option>
           </select>
         </div>
 
@@ -182,23 +202,57 @@ window.Modules.estudios_gestion = {
     `;
 
     UI.modal.show(title, body, footer);
+
+    const labSelect = document.getElementById("e_lab");
+    const tipoSelect = document.getElementById("e_tipo");
+
+    const updateTipoOptions = (labId, selectedTipoId = null) => {
+      if (!labId) {
+        tipoSelect.innerHTML = '<option value="">Primero seleccione un laboratorio...</option>';
+        tipoSelect.disabled = true;
+        return;
+      }
+
+      const filteredTipos = this.tipos.filter(t => t.LABORATORIOS_ID == labId);
+      
+      if (filteredTipos.length === 0) {
+        tipoSelect.innerHTML = '<option value="">No hay estudios en este lab...</option>';
+        tipoSelect.disabled = true;
+      } else {
+        tipoSelect.innerHTML = '<option value="">Seleccione un estudio...</option>' + 
+          filteredTipos.map(t => `<option value="${t.ID}" ${selectedTipoId == t.ID ? 'selected' : ''}>${t.NOMBREESTUDIO} ($${parseFloat(t.COSTO).toFixed(2)})</option>`).join('');
+        tipoSelect.disabled = false;
+      }
+    };
+
+    labSelect.addEventListener("change", (e) => updateTipoOptions(e.target.value));
+
+    // Si es edición, cargar los estudios del laboratorio guardado
+    if (isEdit) {
+      updateTipoOptions(item.LABORATORIOS_ID, item.TIPOESTUDIOS_ID);
+    }
+
     document.getElementById("saveEstudioBtn").addEventListener("click", () => this.save(isEdit));
   },
 
   async save(isEdit) {
     const data = {
-      id: document.getElementById("e_id").value,
       tipoEstudiosId: document.getElementById("e_tipo").value,
       medicosExpediente: document.getElementById("e_medico").value,
       fechaEstudio: document.getElementById("e_fecha").value.replace('T', ' '),
       estatus: document.getElementById("e_estatus").value
     };
 
+    if (isEdit) {
+      data.id = document.getElementById("e_id").value;
+    }
+
     const endpoint = isEdit ? "editar_estudios.php" : "insertar_estudios.php";
+    const method = isEdit ? "PUT" : "POST";
     
     try {
       const response = await fetch(`../api/estudios/${endpoint}`, {
-        method: "POST",
+        method: method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
         credentials: "include"
@@ -228,7 +282,7 @@ window.Modules.estudios_gestion = {
   async delete(id) {
     try {
       const response = await fetch("../api/estudios/eliminar_estudios.php", {
-        method: "POST",
+        method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
         credentials: "include"

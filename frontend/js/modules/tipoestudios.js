@@ -119,11 +119,12 @@ window.Modules.tipoestudios = {
     const body = `
       <form id="tipoForm">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          ${isEdit ? `
           <div class="form-group">
             <label for="t_id">ID</label>
-            <input type="number" id="t_id" value="${item ? item.ID : ''}" ${isEdit ? 'readonly' : ''} required>
-          </div>
-          <div class="form-group">
+            <input type="number" id="t_id" value="${item.ID}" readonly>
+          </div>` : ''}
+          <div class="form-group" ${!isEdit ? 'style="grid-column: span 2;"' : ''}>
             <label for="t_costo">Costo ($)</label>
             <input type="number" id="t_costo" step="0.01" value="${item ? item.COSTO : ''}" required>
           </div>
@@ -157,18 +158,22 @@ window.Modules.tipoestudios = {
 
   async save(isEdit) {
     const data = {
-      id: document.getElementById("t_id").value,
       nombreEstudio: document.getElementById("t_nombre").value,
       requisitosEstudio: document.getElementById("t_req").value,
       costo: document.getElementById("t_costo").value,
       laboratoriosId: document.getElementById("t_lab").value
     };
 
+    if (isEdit) {
+      data.id = document.getElementById("t_id").value;
+    }
+
     const endpoint = isEdit ? "editar_tipoestudios.php" : "insertar_tipoestudios.php";
+    const method = isEdit ? "PUT" : "POST";
     
     try {
       const response = await fetch(`../api/tipoestudios/${endpoint}`, {
-        method: "POST",
+        method: method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
         credentials: "include"
@@ -198,7 +203,7 @@ window.Modules.tipoestudios = {
   async delete(id) {
     try {
       const response = await fetch("../api/tipoestudios/eliminar_tipoestudios.php", {
-        method: "POST",
+        method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
         credentials: "include"

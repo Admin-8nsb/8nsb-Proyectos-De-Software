@@ -12,19 +12,16 @@ window.Modules.ingresos = {
   areas: [],
   habitaciones: [],
   activeTab: 'ingresos',
-
-  async init() {
+async init() {
   this.renderLayout();
 
   await Promise.all([
     this.loadMedicos(),
-    this.loadHospitales(),
-    this.loadHabitaciones()
+    this.loadHospitales()
   ]);
 
   await this.loadData();
 },
-
   renderLayout() {
     const contentArea = document.getElementById("contentArea");
     contentArea.innerHTML = `
@@ -121,26 +118,29 @@ async loadHospitales() {
     }
   },
 
-  async loadHabitacionesPorArea(areaId) {
-    try {
-      const response = await fetch(`../api/habitaciones/listar_por_area.php?area_id=${areaId}`, { credentials: "include" });
-      const res = await response.json();
-      return res.ok ? res.data : [];
-    } catch (error) {
-      console.error("Error al cargar habitaciones:", error);
-      return [];
-    }
-  },
+async loadHabitacionesPorArea(areaId) {
+  try {
+    const response = await fetch(`../api/habitaciones/listar_habitaciones.php?area_id=${areaId}`, { 
+      credentials: "include" 
+    });
 
-  async loadHabitaciones() {
-    try {
-      const response = await fetch("../api/habitaciones/listar_habitaciones.php", { credentials: "include" });
-      const res = await response.json();
-      if (res.ok) this.habitaciones = res.data;
-    } catch (error) {
-      console.error("Error al cargar habitaciones:", error);
-    }
-  },
+    const res = await response.json();
+    return res.ok ? res.data : [];
+  } catch (error) {
+    console.error("Error al cargar habitaciones:", error);
+    return [];
+  }
+},
+
+async loadHabitaciones() {
+  try {
+    const response = await fetch("../api/habitaciones/listar_habitaciones.php", { credentials: "include" });
+    const res = await response.json();
+    if (res.ok) this.habitaciones = res.data;
+  } catch (error) {
+    console.error("Error al cargar habitaciones:", error);
+  }
+},
 
   async loadData() {
     try {
@@ -201,7 +201,7 @@ async loadHospitales() {
           <td><span style="font-weight: 600; color: var(--primary);">#${item.ID}</span></td>
           <td>
             <div style="font-weight: 600;">${item.NOMBREHABITACION}</div>
-            <div style="font-size: 0.75rem; color: var(--text-light);">${item.HOSPITAL_UNI_ORG} - Area ID: ${item.AREAS_ID}</div>
+            <div style="font-size: 0.75rem; color: var(--text-light);">${item.HOSPITAL || item.HOSPITAL_UNI_ORG} - ${item.NOMBREAREA || `Area ID: ${item.AREAS_ID}`}</div>
           </td>
           <td>${subInfo}</td>
           <td style="font-size: 0.85rem;">${new Date(fecha).toLocaleString()}</td>
@@ -242,14 +242,19 @@ async loadHospitales() {
     this.renderTable();
   },
 
+  renderMedicosSelect(list, selectedExpediente = null) {
+    const select = document.getElementById("i_medico");
+    if (!select) return;
+
+    select.innerHTML = `<option value="">Seleccione un médico...</option>
+      ${list.map(m => `<option value="${m.EXPEDIENTE}" ${selectedExpediente == m.EXPEDIENTE ? 'selected' : ''}>${m.NOMBRE} ${m.APELLIDOPATERNO} (${m.ESPECIALIDAD})</option>`).join('')}
+    `;
+  },
+
   async showIngresoModal(item = null) {
     const isEdit = item !== null;
     const title = isEdit ? "Editar Ingreso" : "Registrar Nuevo Ingreso";
     
-    let medicoOptions = this.medicos.map(m => 
-      `<option value="${m.EXPEDIENTE}" ${isEdit && item.MEDICOS_EXPEDIENTE == m.EXPEDIENTE ? 'selected' : ''}>${m.NOMBRE} ${m.APELLIDOPATERNO} (${m.EXPEDIENTE})</option>`
-    ).join('');
-
     let hospitalOptions = this.hospitales.map(h => 
       `<option value="${h.UNI_ORG}" ${isEdit && item.HOSPITAL_UNI_ORG == h.UNI_ORG ? 'selected' : ''}>${h.NOMUO}</option>`
     ).join('');
@@ -293,7 +298,6 @@ async loadHospitales() {
           <label for="i_medico">Médico Responsable</label>
           <select id="i_medico" required>
             <option value="">Seleccione un médico...</option>
-            ${medicoOptions}
           </select>
         </div>
 
@@ -335,8 +339,13 @@ async loadHospitales() {
 
     aSelect.innerHTML = '<option value="">Seleccione un área...</option>' +
       areas.map(a => `<option value="${a.ID}">${a.NOMBREAREA}</option>`).join('');
+    
+    // Filtrar médicos por hospital
+    const filteredMedicos = this.medicos.filter(m => m.HOSPITAL_UNI_ORG === hId);
+    this.renderMedicosSelect(filteredMedicos);
   } else {
     aSelect.innerHTML = '<option value="">Seleccione un área...</option>';
+    this.renderMedicosSelect([]);
   }
 });
 
@@ -370,6 +379,10 @@ aSelect.addEventListener("change", async () => {
       const habs = await this.loadHabitacionesPorArea(item.AREAS_ID);
       habSelect.innerHTML = '<option value="">Seleccione una habitación...</option>' + 
         habs.map(h => `<option value="${h.ID}" ${item.HABITACIONES_ID == h.ID ? 'selected' : ''}>${h.NOMBREHABITACION}</option>`).join('');
+      
+      // Filtrar médicos por el hospital del registro actual
+      const filteredMedicos = this.medicos.filter(m => m.HOSPITAL_UNI_ORG === item.HOSPITAL_UNI_ORG);
+      this.renderMedicosSelect(filteredMedicos, item.MEDICOS_EXPEDIENTE);
     }
 
     document.getElementById("saveIngresoBtn").addEventListener("click", () => this.saveIngreso(isEdit));
@@ -413,71 +426,82 @@ aSelect.addEventListener("change", async () => {
     }
   },
 
-  showEgresoModal(item, isEditingEgres = false) {
-    const title = isEditingEgres ? "Editar Egreso" : "Registrar Egreso";
-    
-    let habOptions = this.habitaciones.map(h => 
-      `<option value="${h.ID}" ${item.HABITACIONES_ID == h.ID ? 'selected' : ''}>${h.NOMBREHABITACION}</option>`
-    ).join('');
+showEgresoModal(item, isEditingEgres = false) {
+  const title = isEditingEgres ? "Editar Egreso" : "Registrar Egreso";
+  
+  let habOptions = `
+    <option value="${item.HABITACIONES_ID}" selected>
+      ${item.NOMBREHABITACION || `Habitación #${item.HABITACIONES_ID}`}
+    </option>
+  `;
 
-    const body = `
-      <form id="egresoForm">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div class="form-group">
-            <label for="e_id">ID de Egreso</label>
-            <input type="number" id="e_id" value="${isEditingEgres ? item.ID : ''}" ${isEditingEgres ? 'readonly' : ''} required>
-          </div>
-          <div class="form-group">
-            <label for="e_ingreso_id">ID de Ingreso</label>
-            <input type="number" id="e_ingreso_id" value="${isEditingEgres ? item.INGRESOS_ID : item.ID}" readonly required>
-          </div>
-        </div>
-
+  const body = `
+    <form id="egresoForm">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        ${isEditingEgres ? `
         <div class="form-group">
-          <label for="e_habitacion">Habitación</label>
-          <select id="e_habitacion" required readonly>
-            ${habOptions}
-          </select>
+          <label for="e_id">ID de Egreso</label>
+          <input type="number" id="e_id" value="${item.ID}" readonly>
+        </div>` : ''}
+        <div class="form-group" ${!isEditingEgres ? 'style="grid-column: span 2;"' : ''}>
+          <label for="e_ingreso_id">ID de Ingreso</label>
+          <input type="number" id="e_ingreso_id" value="${isEditingEgres ? item.INGRESOS_ID : item.ID}" readonly required>
         </div>
+      </div>
 
-        <div class="form-group">
-          <label for="e_tipo">Tipo (Numérico)</label>
-          <input type="number" id="e_tipo" value="${item ? item.TIPO : ''}">
-        </div>
+      <div class="form-group">
+        <label for="e_habitacion">Habitación</label>
+        <select id="e_habitacion" required style="pointer-events: none; background: #f3f4f6;">
+          ${habOptions}
+        </select>
+      </div>
 
-        <div class="form-group">
-          <label for="e_fecha">Fecha de Egreso</label>
-          <input type="datetime-local" id="e_fecha" value="${isEditingEgres ? item.FECHAEGRESO.replace(' ', 'T') : new Date().toISOString().slice(0, 16)}">
-        </div>
+      <div class="form-group">
+        <label for="e_tipo">Tipo (Numérico)</label>
+        <input type="number" id="e_tipo" value="${item ? item.TIPO : ''}">
+      </div>
 
-        <div class="form-group">
-          <label for="e_obs">Observaciones</label>
-          <textarea id="e_obs" rows="3">${item ? item.OBSERVACIONES : ''}</textarea>
-        </div>
-      </form>
-    `;
+      <div class="form-group">
+        <label for="e_fecha">Fecha de Egreso</label>
+        <input type="datetime-local" id="e_fecha" value="${isEditingEgres ? item.FECHAEGRESO.replace(' ', 'T') : new Date().toISOString().slice(0, 16)}">
+      </div>
 
-    const footer = `
-      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-      <button class="btn btn-primary" id="saveEgresoBtn">Guardar Egreso</button>
-    `;
+      <div class="form-group">
+        <label for="e_obs">Observaciones</label>
+        <textarea id="e_obs" rows="3">${item ? item.OBSERVACIONES : ''}</textarea>
+      </div>
+    </form>
+  `;
 
-    UI.modal.show(title, body, footer);
-    document.getElementById("saveEgresoBtn").addEventListener("click", () => this.saveEgreso(isEditingEgres));
-  },
+  const footer = `
+    <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+    <button class="btn btn-primary" id="saveEgresoBtn">Guardar Egreso</button>
+  `;
+
+  UI.modal.show(title, body, footer);
+  document.getElementById("saveEgresoBtn").addEventListener("click", () => this.saveEgreso(isEditingEgres));
+},
 
   async saveEgreso(isEdit) {
     const data = {
-      id: document.getElementById("e_id").value,
       ingresosId: document.getElementById("e_ingreso_id").value,
-      habitacionesId: document.getElementById("e_habitacion").value,
+      habitacionesId: document.getElementById("e_habitacion").value || document.querySelector("#e_habitacion option")?.value,
       tipo: document.getElementById("e_tipo").value,
       fechaEgreso: document.getElementById("e_fecha").value.replace('T', ' '),
       observaciones: document.getElementById("e_obs").value
     };
 
-    if (!data.id || !data.ingresosId || !data.habitacionesId) {
-      UI.toast.show("ID de egreso y habitación son obligatorios", "warning");
+    if (isEdit) {
+      data.id = document.getElementById("e_id").value;
+    }
+
+    if (!data.ingresosId || !data.habitacionesId) {
+      UI.toast.show("Ingreso y habitación son obligatorios", "warning");
+      return;
+    }
+
+    if (isEdit && !data.id) {
+      UI.toast.show("ID de egreso es obligatorio para editar", "warning");
       return;
     }
 
