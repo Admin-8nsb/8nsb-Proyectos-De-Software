@@ -12,6 +12,8 @@ window.Modules.ingresos = {
   areas: [],
   habitaciones: [],
   activeTab: 'ingresos',
+  activeStatusFilter: 'todos',
+  currentSearchQuery: '',
 async init() {
   this.renderLayout();
 
@@ -29,10 +31,16 @@ async init() {
         <div class="tabs-container" style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem;">
           <button id="tabIngresos" class="tab-btn active" style="padding: 0.75rem 1.5rem; border: none; background: none; cursor: pointer; border-bottom: 2px solid var(--primary); font-weight: 600;">Ingresos</button>
           <button id="tabEgresos" class="tab-btn" style="padding: 0.75rem 1.5rem; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; color: var(--text-light);">Egresos</button>
+          <button id="tabMapa" class="tab-btn" style="padding: 0.75rem 1.5rem; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; color: var(--text-light);">🗺️ Mapa de Camas</button>
         </div>
 
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
-          <div style="flex: 1; max-width: 400px;">
+          <div style="flex: 1; max-width: 600px; display: flex; gap: 1rem;" id="searchContainer">
+            <select id="ingresosStatusFilter" class="form-group" style="margin-bottom: 0; min-width: 150px;">
+              <option value="todos">Todos los Estados</option>
+              <option value="activos">Solo Activos (En Cama)</option>
+              <option value="historicos">Históricos (Alta)</option>
+            </select>
             <input type="text" id="ingresosSearch" class="form-group" style="margin-bottom: 0; width: 100%;" placeholder="🔍 Buscar por ID, habitación o médico...">
           </div>
           <button id="addIngresoBtn" class="btn btn-primary">
@@ -44,11 +52,22 @@ async init() {
       <div id="ingresosTableContainer" class="table-container">
         <!-- Table will be rendered here -->
       </div>
+      <div id="mapaContainer" style="display: none;">
+        <!-- Bed map will be rendered here -->
+      </div>
     `;
 
     document.getElementById("tabIngresos").addEventListener("click", () => this.switchTab('ingresos'));
     document.getElementById("tabEgresos").addEventListener("click", () => this.switchTab('egresos'));
-    document.getElementById("ingresosSearch").addEventListener("input", (e) => this.filter(e.target.value));
+    document.getElementById("tabMapa").addEventListener("click", () => this.switchTab('mapa'));
+    document.getElementById("ingresosSearch").addEventListener("input", (e) => {
+      this.currentSearchQuery = e.target.value;
+      this.applyFilters();
+    });
+    document.getElementById("ingresosStatusFilter").addEventListener("change", (e) => {
+      this.activeStatusFilter = e.target.value;
+      this.applyFilters();
+    });
     document.getElementById("addIngresoBtn").addEventListener("click", () => this.showIngresoModal());
   },
 
@@ -56,23 +75,42 @@ async init() {
     this.activeTab = tab;
     const tabI = document.getElementById("tabIngresos");
     const tabE = document.getElementById("tabEgresos");
+    const tabM = document.getElementById("tabMapa");
     const addBtn = document.getElementById("addIngresoBtn");
+    const searchContainer = document.getElementById("searchContainer");
+    const tableContainer = document.getElementById("ingresosTableContainer");
+    const mapaContainer = document.getElementById("mapaContainer");
+
+    [tabI, tabE, tabM].forEach(t => {
+      t.style.borderBottomColor = 'transparent';
+      t.style.color = 'var(--text-light)';
+    });
 
     if (tab === 'ingresos') {
       tabI.style.borderBottomColor = 'var(--primary)';
       tabI.style.color = 'var(--text)';
-      tabE.style.borderBottomColor = 'transparent';
-      tabE.style.color = 'var(--text-light)';
       addBtn.style.display = 'block';
-    } else {
+      searchContainer.style.display = 'block';
+      tableContainer.style.display = 'block';
+      mapaContainer.style.display = 'none';
+      this.renderTable();
+    } else if (tab === 'egresos') {
       tabE.style.borderBottomColor = 'var(--primary)';
       tabE.style.color = 'var(--text)';
-      tabI.style.borderBottomColor = 'transparent';
-      tabI.style.color = 'var(--text-light)';
-      addBtn.style.display = 'none'; // Egresos se generan desde un ingreso
+      addBtn.style.display = 'none';
+      searchContainer.style.display = 'block';
+      tableContainer.style.display = 'block';
+      mapaContainer.style.display = 'none';
+      this.renderTable();
+    } else if (tab === 'mapa') {
+      tabM.style.borderBottomColor = 'var(--primary)';
+      tabM.style.color = 'var(--text)';
+      addBtn.style.display = 'none';
+      searchContainer.style.display = 'none';
+      tableContainer.style.display = 'none';
+      mapaContainer.style.display = 'block';
+      this.loadMapa();
     }
-
-    this.renderTable();
   },
 
   async loadMedicos() {
@@ -183,6 +221,7 @@ async loadHabitaciones() {
             <th>Habitación</th>
             <th>${this.activeTab === 'ingresos' ? 'Médico' : 'Ingreso ID'}</th>
             <th>Fecha</th>
+            ${this.activeTab === 'ingresos' ? '<th>Estancia</th>' : ''}
             <th>Observaciones</th>
             <th style="text-align: right;">Acciones</th>
           </tr>
@@ -196,6 +235,19 @@ async loadHabitaciones() {
         ? `${item.NOMBRE} ${item.APELLIDOPATERNO}` 
         : `Ingreso #${item.INGRESOS_ID}`;
 
+      let estanciaBadge = '';
+      if (this.activeTab === 'ingresos') {
+        let dias = item.dias_estancia;
+        if (item.egreso_id) {
+          estanciaBadge = `<span class="badge" style="background: #f3f4f6; color: var(--text-light);"><span style="color: green;">✔</span> ${dias} días</span>`;
+        } else {
+          let color = dias < 2 ? 'green' : (dias <= 5 ? 'orange' : 'red');
+          let bg = dias < 2 ? '#dcfce7' : (dias <= 5 ? '#fef9c3' : '#fee2e2');
+          let fg = dias < 2 ? '#166534' : (dias <= 5 ? '#a16207' : '#991b1b');
+          estanciaBadge = `<span class="badge" style="background: ${bg}; color: ${fg}; padding: 4px 8px; border-radius: 4px; font-weight: 600;">${dias} días</span>`;
+        }
+      }
+
       html += `
         <tr>
           <td><span style="font-weight: 600; color: var(--primary);">#${item.ID}</span></td>
@@ -205,15 +257,17 @@ async loadHabitaciones() {
           </td>
           <td>${subInfo}</td>
           <td style="font-size: 0.85rem;">${new Date(fecha).toLocaleString()}</td>
+          ${this.activeTab === 'ingresos' ? `<td>${estanciaBadge}</td>` : ''}
           <td title="${item.OBSERVACIONES || ''}">${(item.OBSERVACIONES || '').substring(0, 30)}${(item.OBSERVACIONES || '').length > 30 ? '...' : ''}</td>
           <td style="text-align: right;">
+            <button class="btn btn-secondary btn-sm" title="Imprimir Constancia" onclick="Modules.ingresos.printTicket(${JSON.stringify(item).replace(/"/g, '&quot;')})">🖨️</button>
             ${this.activeTab === 'ingresos' ? `
-              <button class="btn btn-secondary btn-sm" title="Registrar Egreso" onclick="Modules.ingresos.showEgresoModal(${JSON.stringify(item).replace(/"/g, '&quot;')})">🚪</button>
-              <button class="btn btn-secondary btn-sm" onclick="Modules.ingresos.showIngresoModal(${JSON.stringify(item).replace(/"/g, '&quot;')})">✏️</button>
-              <button class="btn btn-secondary btn-sm" onclick="Modules.ingresos.confirmDeleteIngreso(${item.ID}, ${item.HABITACIONES_ID})">🗑️</button>
+              ${!item.egreso_id ? `<button class="btn btn-secondary btn-sm" title="Registrar Egreso" onclick="Modules.ingresos.showEgresoModal(${JSON.stringify(item).replace(/"/g, '&quot;')})">🚪</button>` : ''}
+              <button class="btn btn-secondary btn-sm" title="Editar Ingreso" onclick="Modules.ingresos.showIngresoModal(${JSON.stringify(item).replace(/"/g, '&quot;')})">✏️</button>
+              <button class="btn btn-secondary btn-sm" title="Eliminar Ingreso" onclick="Modules.ingresos.confirmDeleteIngreso(${item.ID}, ${item.HABITACIONES_ID})">🗑️</button>
             ` : `
-              <button class="btn btn-secondary btn-sm" onclick="Modules.ingresos.showEgresoModal(${JSON.stringify(item).replace(/"/g, '&quot;')}, true)">✏️</button>
-              <button class="btn btn-secondary btn-sm" onclick="Modules.ingresos.confirmDeleteEgreso(${item.ID}, ${item.HABITACIONES_ID})">🗑️</button>
+              <button class="btn btn-secondary btn-sm" title="Editar Egreso" onclick="Modules.ingresos.showEgresoModal(${JSON.stringify(item).replace(/"/g, '&quot;')}, true)">✏️</button>
+              <button class="btn btn-secondary btn-sm" title="Eliminar Egreso" onclick="Modules.ingresos.confirmDeleteEgreso(${item.ID}, ${item.HABITACIONES_ID})">🗑️</button>
             `}
           </td>
         </tr>
@@ -224,22 +278,35 @@ async loadHabitaciones() {
     container.innerHTML = html;
   },
 
-  filter(query) {
-    const q = query.toLowerCase();
+  applyFilters() {
+    const q = this.currentSearchQuery.toLowerCase();
+    const status = this.activeStatusFilter;
+
     if (this.activeTab === 'ingresos') {
-      this.filteredIngresos = this.ingresos.filter(i => 
-        i.ID.toString().includes(q) || 
-        i.NOMBREHABITACION.toLowerCase().includes(q) ||
-        `${i.NOMBRE} ${i.APELLIDOPATERNO}`.toLowerCase().includes(q)
-      );
+      this.filteredIngresos = this.ingresos.filter(i => {
+        const matchesQuery = i.ID.toString().includes(q) || 
+                             i.NOMBREHABITACION.toLowerCase().includes(q) ||
+                             `${i.NOMBRE} ${i.APELLIDOPATERNO}`.toLowerCase().includes(q);
+        
+        let matchesStatus = true;
+        if (status === 'activos') matchesStatus = !i.egreso_id;
+        if (status === 'historicos') matchesStatus = !!i.egreso_id;
+
+        return matchesQuery && matchesStatus;
+      });
     } else {
-      this.filteredEgresos = this.egresos.filter(e => 
-        e.ID.toString().includes(q) || 
-        e.NOMBREHABITACION.toLowerCase().includes(q) ||
-        e.INGRESOS_ID.toString().includes(q)
-      );
+      this.filteredEgresos = this.egresos.filter(e => {
+        return e.ID.toString().includes(q) || 
+               e.NOMBREHABITACION.toLowerCase().includes(q) ||
+               e.INGRESOS_ID.toString().includes(q);
+      });
     }
     this.renderTable();
+  },
+
+  filter(query) {
+    this.currentSearchQuery = query;
+    this.applyFilters();
   },
 
   async showIngresoModal(item = null) {
@@ -582,5 +649,154 @@ async deleteIngreso(id, habId) {
     } catch (error) {
       UI.toast.show("Error al eliminar", "error");
     }
+  },
+
+  async loadMapa() {
+    try {
+      const container = document.getElementById("mapaContainer");
+      container.innerHTML = '<div style="text-align:center; padding:2rem;"><div class="spinner"></div></div>';
+      
+      const response = await fetch("../api/habitaciones/ocupacion_detallada.php", { credentials: "include" });
+      const res = await response.json();
+      
+      if (res.ok) {
+        this.renderMapa(res.data);
+      } else {
+        container.innerHTML = `<div style="padding: 2rem; text-align: center; color: var(--danger);">Error al cargar mapa: ${res.message}</div>`;
+      }
+    } catch (error) {
+      console.error("Error al cargar mapa", error);
+    }
+  },
+
+  renderMapa(agrupado) {
+    const container = document.getElementById("mapaContainer");
+    
+    if (Object.keys(agrupado).length === 0) {
+      container.innerHTML = '<div style="padding: 2rem; text-align: center;">No hay habitaciones registradas.</div>';
+      return;
+    }
+
+    let html = '';
+
+    for (const [area, habitaciones] of Object.entries(agrupado)) {
+      html += `
+        <div style="margin-bottom: 2rem;">
+          <h3 style="margin-bottom: 1rem; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">🏢 ${area}</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+      `;
+
+      habitaciones.forEach(h => {
+        const isOcupada = parseInt(h.ocupada) === 1;
+        const bgColor = isOcupada ? '#fee2e2' : '#dcfce7';
+        const borderColor = isOcupada ? '#ef4444' : '#22c55e';
+        const icon = isOcupada ? '🛏️ Ocupada' : '🛏️ Disponible';
+        
+        html += `
+          <div style="background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 8px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; overflow: hidden;">
+            <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.25rem; color: #1f2937;">${h.NOMBREHABITACION}</div>
+            <div style="font-size: 0.8rem; font-weight: 600; color: ${isOcupada ? '#991b1b' : '#166534'}; margin-bottom: 0.5rem;">${icon}</div>
+            ${isOcupada ? `
+              <div style="font-size: 0.75rem; color: #4b5563; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid rgba(0,0,0,0.1);">
+                <div>👨‍⚕️ ${h.medico_nombre} ${h.medico_apellido}</div>
+                <div>⏱️ Estancia: <strong>${h.dias_estancia} días</strong></div>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      });
+
+      html += `
+          </div>
+        </div>
+      `;
+    }
+
+    container.innerHTML = html;
+  },
+
+  printTicket(item) {
+    const isIngreso = this.activeTab === 'ingresos';
+    const tipoLabel = isIngreso ? 'CONSTANCIA DE INGRESO' : 'CONSTANCIA DE EGRESO';
+    const numId = isIngreso ? item.ID : item.INGRESOS_ID;
+    const fecha = new Date(isIngreso ? item.FECHAINGRESO : item.FECHAEGRESO).toLocaleString();
+    const subInfo = isIngreso ? `${item.NOMBRE} ${item.APELLIDOPATERNO}` : 'N/A';
+    
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>${tipoLabel} #${item.ID}</title>
+          <style>
+            body { font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; color: #333; }
+            .header { text-align: center; border-bottom: 2px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; }
+            .header h1 { color: #1e3a8a; margin: 0; font-size: 24px; }
+            .header p { margin: 5px 0 0; color: #64748b; }
+            .content-box { border: 1px solid #cbd5e1; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+            .row { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 5px; }
+            .label { font-weight: bold; color: #475569; width: 40%; }
+            .val { width: 60%; text-align: right; }
+            .footer { text-align: center; margin-top: 50px; font-size: 12px; color: #94a3b8; }
+            .signature { margin-top: 60px; text-align: center; }
+            .signature-line { border-top: 1px solid #000; width: 250px; margin: 0 auto; padding-top: 10px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>HOSPITAL GENERAL HIS</h1>
+            <p>Sistema de Gestión Hospitalaria</p>
+          </div>
+          
+          <h2 style="text-align: center; margin-bottom: 30px;">${tipoLabel}</h2>
+          
+          <div class="content-box">
+            <div class="row">
+              <div class="label">No. de Registro:</div>
+              <div class="val">#${item.ID}</div>
+            </div>
+            ${!isIngreso ? `
+            <div class="row">
+              <div class="label">Asociado al Ingreso:</div>
+              <div class="val">#${item.INGRESOS_ID}</div>
+            </div>
+            ` : ''}
+            <div class="row">
+              <div class="label">Fecha y Hora:</div>
+              <div class="val">${fecha}</div>
+            </div>
+            <div class="row">
+              <div class="label">Habitación Asignada:</div>
+              <div class="val">${item.NOMBREHABITACION}</div>
+            </div>
+            ${isIngreso ? `
+            <div class="row">
+              <div class="label">Médico Responsable:</div>
+              <div class="val">Dr. ${subInfo}</div>
+            </div>
+            ` : ''}
+            <div class="row" style="border-bottom: none; display: block;">
+              <div class="label" style="width: 100%; margin-bottom: 10px;">Observaciones Médicas:</div>
+              <div class="val" style="width: 100%; text-align: left; background: #f8fafc; padding: 10px; border-radius: 4px; min-height: 50px;">
+                ${item.OBSERVACIONES || 'Sin observaciones.'}
+              </div>
+            </div>
+          </div>
+          
+          <div class="signature">
+            <div class="signature-line">Firma del Responsable / Sello</div>
+          </div>
+          
+          <div class="footer">
+            Documento generado automáticamente por Hospital HIS el ${new Date().toLocaleString()}<br>
+            Cualquier alteración invalida este documento.
+          </div>
+          <script>
+            window.onload = function() { window.print(); window.close(); }
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
   }
 };
+
